@@ -44,7 +44,7 @@ tr:hover td { background: #f9fafb; }
     <div class="header">
         <div>
             @if($setting->company_logo)
-            <img src="{{ Storage::url($setting->company_logo) }}" alt="Logo" style="height:50px;margin-bottom:8px;">
+            <img src="/storage/{{ $setting->company_logo }}" alt="Logo" style="height:50px;margin-bottom:8px;">
             @endif
             <div class="company-name">{{ $setting->company_name }}</div>
             <div class="company-info">{{ $setting->company_address }}</div>

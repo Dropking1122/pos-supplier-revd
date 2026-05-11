@@ -50,13 +50,17 @@ fi
 echo "Starting Laravel..."
 cd /home/runner/workspace
 
-# Patch .env with correct DB credentials for this environment
+# Patch .env with correct DB credentials and APP_URL for this environment
 if [ -f .env ]; then
     sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=pos_password|" .env
     grep -q "^DB_SOCKET=" .env && sed -i "s|^DB_SOCKET=.*|DB_SOCKET=$MYSQL_SOCK|" .env || echo "DB_SOCKET=$MYSQL_SOCK" >> .env
+    if [ -n "$REPLIT_DEV_DOMAIN" ]; then
+        sed -i "s|^APP_URL=.*|APP_URL=https://$REPLIT_DEV_DOMAIN|" .env
+    fi
 fi
 
 php artisan config:clear 2>/dev/null || true
+php artisan storage:link --force 2>/dev/null || true
 php artisan migrate --force 2>/dev/null || true
 php artisan db:seed --force 2>/dev/null || true
 php artisan serve --host=0.0.0.0 --port=5000
