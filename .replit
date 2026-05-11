@@ -22,13 +22,18 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "php artisan serve --host=0.0.0.0 --port=5000"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash /home/runner/workspace/start.sh"
+waitForPort = 5000
+
+[[ports]]
+localPort = 3306
+externalPort = 3002
+exposeLocalhost = true
 
 [[ports]]
 localPort = 5000
@@ -38,3 +43,14 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["php", "artisan", "serve", "--host=0.0.0.0", "--port=5000"]
 build = ["bash", "-c", "composer install --no-interaction && npm install && npm run build && php artisan migrate --force"]
+
+[userenv]
+
+[userenv.development]
+DB_CONNECTION = "mysql"
+DB_HOST = "127.0.0.1"
+DB_PORT = "3306"
+DB_DATABASE = "pos_supplier"
+DB_USERNAME = "root"
+DB_SOCKET = "/home/runner/mysql-run/mysql.sock"
+DB_PASSWORD = "pos_password"

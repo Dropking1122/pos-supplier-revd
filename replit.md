@@ -5,7 +5,7 @@ A full-featured Point of Sale Supplier system built with Laravel 13, Livewire, a
 ## Tech Stack
 - **Backend**: Laravel 13 (PHP 8.4)
 - **Frontend**: Livewire 3, TailwindCSS 4, Alpine.js
-- **Database**: SQLite
+- **Database**: MySQL 8.0 (socket: `/home/runner/mysql-run/mysql.sock`, DB: `pos_supplier`)
 - **Auth**: Laravel Breeze (Livewire stack)
 - **PDF**: DomPDF
 - **Export**: CSV export via PHP streams
@@ -36,5 +36,5 @@ A full-featured Point of Sale Supplier system built with Laravel 13, Livewire, a
 
 ## User Preferences
 - Indonesian language UI
-- SQLite database for simplicity
+- MySQL 8.0 database (started automatically via `start.sh` workflow)
 - Port 5000 for development server
