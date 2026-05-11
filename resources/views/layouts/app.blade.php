@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $setting->company_name ?? config('app.name') }} - POS Supplier</title>
+    <meta name="description" content="Sistem Point of Sale untuk {{ $setting->company_name ?? config('app.name') }}. Kelola penjualan, stok produk, dan laporan bisnis.">
+    <meta name="robots" content="noindex, nofollow">
+    @if($setting->company_logo)
+    <link rel="icon" href="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}">
+    <link rel="apple-touch-icon" href="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}">
+    @else
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M13 10V3L4 14h7v7l9-11h-7z'/></svg>">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>

@@ -60,7 +60,7 @@
                         {{-- Logo saat ini --}}
                         @if($setting->company_logo)
                         <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200 mb-3" x-show="!hasNew">
-                            <img src="/storage/{{ $setting->company_logo }}"
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}"
                                  alt="Logo saat ini"
                                  class="w-16 h-16 object-contain rounded-lg border bg-white p-1">
                             <div class="flex-1 min-w-0">
@@ -140,7 +140,7 @@
                 <h3 class="font-semibold text-gray-700 mb-4">Preview Toko</h3>
                 <div class="text-center">
                     @if($setting->company_logo)
-                    <img src="/storage/{{ $setting->company_logo }}"
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}"
                          alt="Logo"
                          class="w-24 h-24 object-contain mx-auto mb-3 rounded-xl border bg-gray-50 p-2">
                     @else
