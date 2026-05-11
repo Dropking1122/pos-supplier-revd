@@ -12,6 +12,11 @@ class ProductList extends Component {
     public $editId = null;
     public $kode_barang = '', $nama_barang = '', $jenis_barang = '', $kuantitas = 0;
     public $modal_awal = 0, $harga_grosir = 0, $harga_ecer = 0, $harga_satuan = '', $stock_minimum = 5;
+    public $sortField = 'nama_barang', $sortDirection = 'asc';
+    public $filterLowStock = false;
+
+    protected $queryString = ['filterLowStock' => ['except' => false]];
+
     protected $rules = [
         'kode_barang'  => 'required|string|max:100',
         'nama_barang'  => 'required|string|max:255',
@@ -23,7 +28,20 @@ class ProductList extends Component {
         'harga_satuan' => 'nullable|string',
         'stock_minimum'=> 'required|integer|min:0',
     ];
+
     public function updatingSearch() { $this->resetPage(); }
+    public function updatingFilterLowStock() { $this->resetPage(); }
+
+    public function sort($field) {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
+
     public function openCreate() {
         $this->reset(['editId','kode_barang','nama_barang','jenis_barang','kuantitas','modal_awal','harga_grosir','harga_ecer','harga_satuan','stock_minimum']);
         $this->stock_minimum = 5;
@@ -59,13 +77,22 @@ class ProductList extends Component {
         session()->flash('message','Produk berhasil dihapus!');
     }
     public function render() {
-        $products = Product::withSum('saleDetails as total_terjual', 'quantity')
+        $sortableAggregates = ['total_terjual', 'total_pendapatan'];
+        $query = Product::withSum('saleDetails as total_terjual', 'quantity')
             ->withSum('saleDetails as total_pendapatan', 'subtotal')
             ->where(function($q) {
                 $q->where('nama_barang','like',"%{$this->search}%")
                   ->orWhere('kode_barang','like',"%{$this->search}%");
             })
-            ->paginate(10);
+            ->when($this->filterLowStock, fn($q) => $q->whereColumn('kuantitas','<=','stock_minimum'));
+
+        if (in_array($this->sortField, $sortableAggregates)) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        } else {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        }
+
+        $products = $query->paginate(10);
 
         $totalProduk    = Product::count();
         $totalTerjual   = SaleDetail::sum('quantity');

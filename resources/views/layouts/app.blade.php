@@ -196,6 +196,11 @@
             @endif
             {{ $slot }}
         </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 px-4 md:px-6 py-2.5 flex items-center justify-center shrink-0">
+            <p class="text-xs text-gray-400">Powered by <a href="https://revdstore.app" target="_blank" class="text-indigo-500 hover:text-indigo-700 font-medium transition-colors">revdstore.app</a></p>
+        </footer>
     </div>
 </div>
 @livewireScripts

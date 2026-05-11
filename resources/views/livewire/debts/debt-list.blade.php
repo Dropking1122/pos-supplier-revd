@@ -7,6 +7,12 @@
             <option value="lunas">Lunas</option>
         </select>
     </div>
+
+    @php
+        $sortIcon = fn($f) => $sortField === $f ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕';
+        $sortClass = fn($f) => $sortField === $f ? 'text-indigo-600' : 'text-gray-400';
+    @endphp
+
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -14,11 +20,21 @@
                     <tr>
                         <th class="px-4 py-3 text-left">Customer</th>
                         <th class="px-4 py-3 text-left">Invoice</th>
-                        <th class="px-4 py-3 text-right">Total Hutang</th>
-                        <th class="px-4 py-3 text-right">Sudah Bayar</th>
-                        <th class="px-4 py-3 text-right">Sisa Hutang</th>
-                        <th class="px-4 py-3 text-center">Jatuh Tempo</th>
-                        <th class="px-4 py-3 text-center">Status</th>
+                        <th class="px-4 py-3 text-right cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('total_hutang')">
+                            <span class="flex items-center justify-end gap-1">Total Hutang <span class="{{ $sortClass('total_hutang') }}">{{ $sortIcon('total_hutang') }}</span></span>
+                        </th>
+                        <th class="px-4 py-3 text-right cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('total_bayar')">
+                            <span class="flex items-center justify-end gap-1">Sudah Bayar <span class="{{ $sortClass('total_bayar') }}">{{ $sortIcon('total_bayar') }}</span></span>
+                        </th>
+                        <th class="px-4 py-3 text-right cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('sisa_hutang')">
+                            <span class="flex items-center justify-end gap-1">Sisa Hutang <span class="{{ $sortClass('sisa_hutang') }}">{{ $sortIcon('sisa_hutang') }}</span></span>
+                        </th>
+                        <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('jatuh_tempo')">
+                            <span class="flex items-center justify-center gap-1">Jatuh Tempo <span class="{{ $sortClass('jatuh_tempo') }}">{{ $sortIcon('jatuh_tempo') }}</span></span>
+                        </th>
+                        <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('status')">
+                            <span class="flex items-center justify-center gap-1">Status <span class="{{ $sortClass('status') }}">{{ $sortIcon('status') }}</span></span>
+                        </th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -27,9 +43,9 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium">{{ $debt->customer->name }}</td>
                         <td class="px-4 py-3 font-mono text-xs text-indigo-600">{{ $debt->sale?->invoice_number ?? '-' }}</td>
-                        <td class="px-4 py-3 text-right">Rp {{ number_format($debt->total_hutang,0,',','.') }}</td>
-                        <td class="px-4 py-3 text-right text-green-600">Rp {{ number_format($debt->total_bayar,0,',','.') }}</td>
-                        <td class="px-4 py-3 text-right font-bold text-red-600">Rp {{ number_format($debt->sisa_hutang,0,',','.') }}</td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap">Rp {{ number_format($debt->total_hutang,0,',','.') }}</td>
+                        <td class="px-4 py-3 text-right text-green-600 whitespace-nowrap">Rp {{ number_format($debt->total_bayar,0,',','.') }}</td>
+                        <td class="px-4 py-3 text-right font-bold text-red-600 whitespace-nowrap">Rp {{ number_format($debt->sisa_hutang,0,',','.') }}</td>
                         <td class="px-4 py-3 text-center {{ $debt->jatuh_tempo && $debt->jatuh_tempo->isPast() && $debt->status === 'belum_lunas' ? 'text-red-600 font-semibold' : 'text-gray-500' }}">
                             {{ $debt->jatuh_tempo?->format('d/m/Y') ?? '-' }}
                         </td>

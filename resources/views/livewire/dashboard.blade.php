@@ -2,65 +2,72 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
 
-        <div class="bg-white rounded-xl shadow-sm border-l-4 border-indigo-500 p-3 sm:p-4">
+        <a href="{{ route('sales.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-indigo-500 p-3 sm:p-4 hover:shadow-md hover:border-indigo-600 transition-all cursor-pointer group">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
                     <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Penjualan</p>
-                    <p class="text-sm sm:text-lg md:text-2xl font-bold text-gray-800 mt-0.5 tabular-nums truncate">Rp&nbsp;{{ number_format($totalSales,0,',','.') }}</p>
+                    <p class="text-sm sm:text-base md:text-xl font-bold text-gray-800 mt-0.5 tabular-nums break-all">Rp&nbsp;{{ number_format($totalSales,0,',','.') }}</p>
                 </div>
-                <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-indigo-100 transition-colors">
                     <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-        </div>
+            <p class="text-[10px] text-indigo-400 mt-1 font-medium hidden sm:block">Lihat riwayat →</p>
+        </a>
 
-        <div class="bg-white rounded-xl shadow-sm border-l-4 border-green-500 p-3 sm:p-4">
+        <a href="{{ route('reports.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-green-500 p-3 sm:p-4 hover:shadow-md hover:border-green-600 transition-all cursor-pointer group">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
                     <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Profit</p>
-                    <p class="text-sm sm:text-lg md:text-2xl font-bold text-gray-800 mt-0.5 tabular-nums truncate">Rp&nbsp;{{ number_format($totalProfit,0,',','.') }}</p>
+                    <p class="text-sm sm:text-base md:text-xl font-bold text-gray-800 mt-0.5 tabular-nums break-all">Rp&nbsp;{{ number_format($totalProfit,0,',','.') }}</p>
                 </div>
-                <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
                     <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 </div>
             </div>
-        </div>
+            <p class="text-[10px] text-green-400 mt-1 font-medium hidden sm:block">Lihat laporan →</p>
+        </a>
 
-        <div class="bg-white rounded-xl shadow-sm border-l-4 border-yellow-500 p-3 sm:p-4">
+        <a href="{{ route('debts.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-yellow-500 p-3 sm:p-4 hover:shadow-md hover:border-yellow-600 transition-all cursor-pointer group">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
                     <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Hutang</p>
-                    <p class="text-sm sm:text-lg md:text-2xl font-bold text-gray-800 mt-0.5 tabular-nums truncate">Rp&nbsp;{{ number_format($totalDebt,0,',','.') }}</p>
+                    <p class="text-sm sm:text-base md:text-xl font-bold text-gray-800 mt-0.5 tabular-nums break-all">Rp&nbsp;{{ number_format($totalDebt,0,',','.') }}</p>
                 </div>
-                <div class="w-9 h-9 bg-yellow-50 rounded-xl flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 bg-yellow-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-yellow-100 transition-colors">
                     <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 </div>
             </div>
-        </div>
+            <p class="text-[10px] text-yellow-400 mt-1 font-medium hidden sm:block">Lihat hutang →</p>
+        </a>
 
-        <div class="bg-white rounded-xl shadow-sm border-l-4 border-blue-500 p-3 sm:p-4">
+        <a href="{{ route('products.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-blue-500 p-3 sm:p-4 hover:shadow-md hover:border-blue-600 transition-all cursor-pointer group">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
                     <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Barang</p>
-                    <p class="text-sm sm:text-lg md:text-2xl font-bold text-gray-800 mt-0.5 tabular-nums">{{ $totalProducts }}</p>
+                    <p class="text-sm sm:text-base md:text-xl font-bold text-gray-800 mt-0.5 tabular-nums">{{ $totalProducts }}</p>
                     <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5 hidden sm:block">jenis produk</p>
                 </div>
-                <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-blue-100 transition-colors">
                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </div>
             </div>
-        </div>
+            <p class="text-[10px] text-blue-400 mt-1 font-medium hidden sm:block">Lihat produk →</p>
+        </a>
     </div>
 
     <!-- Transaksi Terbaru + Stok Habis -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <!-- Recent Sales -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 sm:p-5">
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Transaksi Terbaru</h3>
                 </div>
-                <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Transaksi Terbaru</h3>
+                <a href="{{ route('sales.index') }}" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium whitespace-nowrap">Lihat semua →</a>
             </div>
             <div class="overflow-x-auto -mx-4 sm:mx-0">
                 <table class="w-full text-xs sm:text-sm min-w-[400px] sm:min-w-0">
@@ -117,6 +124,15 @@
                 <p class="text-sm text-green-600 font-medium">Semua stok aman</p>
             </div>
             @endforelse
+            @if($lowStockProducts->count() > 0)
+            <div class="mt-4 pt-3 border-t border-gray-100">
+                <a href="{{ route('products.index') }}?filterLowStock=1"
+                   class="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs py-2 px-3 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Lihat {{ $lowStockProducts->count() }} produk hampir habis
+                </a>
+            </div>
+            @endif
         </div>
     </div>
 

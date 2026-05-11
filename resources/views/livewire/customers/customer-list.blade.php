@@ -3,13 +3,23 @@
         <input wire:model.live="search" type="text" placeholder="Cari customer..." class="w-full sm:w-72 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
         <button wire:click="openCreate" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 whitespace-nowrap">➕ Tambah Customer</button>
     </div>
+
+    @php
+        $sortIcon = fn($f) => $sortField === $f ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕';
+        $sortClass = fn($f) => $sortField === $f ? 'text-indigo-600' : 'text-gray-400';
+    @endphp
+
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
                     <tr>
-                        <th class="px-4 py-3 text-left">Nama</th>
-                        <th class="px-4 py-3 text-left">Telepon</th>
+                        <th class="px-4 py-3 text-left cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('name')">
+                            <span class="flex items-center gap-1">Nama <span class="{{ $sortClass('name') }}">{{ $sortIcon('name') }}</span></span>
+                        </th>
+                        <th class="px-4 py-3 text-left cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('phone')">
+                            <span class="flex items-center gap-1">Telepon <span class="{{ $sortClass('phone') }}">{{ $sortIcon('phone') }}</span></span>
+                        </th>
                         <th class="px-4 py-3 text-left">Alamat</th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>

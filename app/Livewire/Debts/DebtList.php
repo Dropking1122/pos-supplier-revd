@@ -8,7 +8,21 @@ class DebtList extends Component {
     public $search = '', $filterStatus = '';
     public $showPayModal = false;
     public $payDebtId = null, $payAmount = 0, $payDate = '', $payNotes = '';
+    public $sortField = 'created_at', $sortDirection = 'desc';
+
     public function updatingSearch() { $this->resetPage(); }
+    public function updatingFilterStatus() { $this->resetPage(); }
+
+    public function sort($field) {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
+
     public function openPay($debtId) {
         $debt = Debt::findOrFail($debtId);
         $this->payDebtId = $debtId;
@@ -38,7 +52,8 @@ class DebtList extends Component {
         $debts = Debt::with(['customer','sale'])
             ->when($this->search, fn($q)=>$q->whereHas('customer',fn($q2)=>$q2->where('name','like',"%{$this->search}%")))
             ->when($this->filterStatus, fn($q)=>$q->where('status',$this->filterStatus))
-            ->latest()->paginate(10);
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate(10);
         return view('livewire.debts.debt-list', compact('debts'));
     }
 }

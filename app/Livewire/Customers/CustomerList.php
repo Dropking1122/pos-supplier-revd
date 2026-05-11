@@ -9,8 +9,22 @@ class CustomerList extends Component {
     public $showModal = false;
     public $editId = null;
     public $name = '', $phone = '', $address = '';
+    public $sortField = 'name', $sortDirection = 'asc';
+
     protected $rules = ['name'=>'required|string|max:255','phone'=>'nullable|string|max:50','address'=>'nullable|string'];
+
     public function updatingSearch() { $this->resetPage(); }
+
+    public function sort($field) {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
+
     public function openCreate() { $this->reset(['editId','name','phone','address']); $this->showModal = true; }
     public function openEdit($id) {
         $c = Customer::findOrFail($id);
@@ -30,7 +44,12 @@ class CustomerList extends Component {
     }
     public function delete($id) { Customer::findOrFail($id)->delete(); session()->flash('message','Customer dihapus!'); }
     public function render() {
-        $customers = Customer::where('name','like',"%{$this->search}%")->orWhere('phone','like',"%{$this->search}%")->paginate(10);
+        $customers = Customer::where(function($q) {
+                $q->where('name','like',"%{$this->search}%")
+                  ->orWhere('phone','like',"%{$this->search}%");
+            })
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate(10);
         return view('livewire.customers.customer-list', compact('customers'));
     }
 }
