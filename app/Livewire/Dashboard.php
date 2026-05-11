@@ -13,10 +13,10 @@ class Dashboard extends Component {
             ->value('profit') ?? 0;
         $totalDebt = Debt::where('status','belum_lunas')->sum('sisa_hutang');
         $lowStockProducts = Product::whereColumn('kuantitas','<=','stock_minimum')->get();
-        $monthlySales = Sale::selectRaw("strftime('%m', created_at) as month, SUM(total_amount) as total")
+        $monthlySales = Sale::selectRaw("MONTH(created_at) as month, SUM(total_amount) as total")
             ->whereYear('created_at', now()->year)
-            ->groupByRaw("strftime('%m', created_at)")
-            ->orderByRaw("strftime('%m', created_at)")
+            ->groupByRaw("MONTH(created_at)")
+            ->orderByRaw("MONTH(created_at)")
             ->pluck('total', 'month');
         $recentSales = Sale::with('customer')->latest()->take(5)->get();
         return view('livewire.dashboard', compact('setting','totalSales','totalProducts','totalProfit','totalDebt','lowStockProducts','monthlySales','recentSales'));
