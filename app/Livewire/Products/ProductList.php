@@ -4,7 +4,6 @@ use App\Models\Product;
 use App\Models\SaleDetail;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\DB;
 
 class ProductList extends Component {
     use WithPagination;
@@ -68,21 +67,13 @@ class ProductList extends Component {
             })
             ->paginate(10);
 
-        $topProducts = Product::select('products.*')
-            ->join('sale_details','products.id','=','sale_details.product_id')
-            ->selectRaw('products.*, SUM(sale_details.quantity) as total_terjual, SUM(sale_details.subtotal) as total_pendapatan')
-            ->groupBy('products.id','products.kode_barang','products.nama_barang','products.jenis_barang','products.kuantitas','products.modal_awal','products.harga_grosir','products.harga_ecer','products.harga_satuan','products.stock_minimum','products.created_at','products.updated_at')
-            ->orderByDesc('total_terjual')
-            ->limit(5)
-            ->get();
-
         $totalProduk    = Product::count();
         $totalTerjual   = SaleDetail::sum('quantity');
         $totalPendapatan= SaleDetail::sum('subtotal');
         $lowStockCount  = Product::whereColumn('kuantitas','<=','stock_minimum')->count();
 
         return view('livewire.products.product-list', compact(
-            'products','topProducts','totalProduk','totalTerjual','totalPendapatan','lowStockCount'
+            'products','totalProduk','totalTerjual','totalPendapatan','lowStockCount'
         ));
     }
 }

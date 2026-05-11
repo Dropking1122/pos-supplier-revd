@@ -23,41 +23,6 @@
         </div>
     </div>
 
-    <!-- Top Produk Terjual -->
-    @if($topProducts->count())
-    <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                </svg>
-            </div>
-            <h3 class="font-semibold text-gray-700">Top 5 Produk Terlaris</h3>
-        </div>
-        <div class="space-y-3">
-            @php $maxTerjual = $topProducts->first()->total_terjual ?: 1; @endphp
-            @foreach($topProducts as $i => $tp)
-            <div class="flex items-center gap-3">
-                <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                    {{ $i === 0 ? 'bg-amber-400 text-white' : ($i === 1 ? 'bg-gray-300 text-gray-700' : ($i === 2 ? 'bg-orange-300 text-white' : 'bg-gray-100 text-gray-500')) }}">
-                    {{ $i + 1 }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-sm font-medium text-gray-800 truncate">{{ $tp->nama_barang }}</span>
-                        <span class="text-sm font-semibold text-gray-700 ml-2 shrink-0">{{ number_format($tp->total_terjual,0,',','.') }} unit</span>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="h-1.5 rounded-full {{ $i === 0 ? 'bg-amber-400' : 'bg-indigo-400' }}" style="width: {{ ($tp->total_terjual / $maxTerjual) * 100 }}%"></div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-0.5">Rp {{ number_format($tp->total_pendapatan,0,',','.') }}</p>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
     <!-- Header Table -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div class="relative w-full sm:w-72">
