@@ -1,17 +1,20 @@
 <?php
 namespace App\Livewire\Settings;
+
 use App\Models\Setting;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-class SettingIndex extends Component {
+class SettingIndex extends Component
+{
     use WithFileUploads;
 
     public $company_name = '', $company_address = '', $company_phone = '', $invoice_footer = '', $petugas = '';
     public $logo;
 
-    protected function rules() {
+    protected function rules()
+    {
         return [
             'company_name'    => 'required|string|max:255',
             'company_address' => 'nullable|string',
@@ -22,7 +25,8 @@ class SettingIndex extends Component {
         ];
     }
 
-    public function mount() {
+    public function mount()
+    {
         $s = Setting::getSettings();
         $this->company_name    = $s->company_name;
         $this->company_address = $s->company_address;
@@ -31,14 +35,16 @@ class SettingIndex extends Component {
         $this->petugas         = $s->petugas;
     }
 
-    public function updatedLogo() {
+    public function updatedLogo()
+    {
         $this->validateOnly('logo');
     }
 
-    public function save() {
+    public function save()
+    {
         $this->validate();
 
-        $s = Setting::getSettings();
+        $s    = Setting::getSettings();
         $data = [
             'company_name'    => $this->company_name,
             'company_address' => $this->company_address,
@@ -50,9 +56,23 @@ class SettingIndex extends Component {
         if ($this->logo) {
             // Hapus logo lama jika ada
             if ($s->company_logo) {
-                Storage::disk('public')->delete($s->company_logo);
+                $oldPath = public_path($s->company_logo);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
             }
-            $data['company_logo'] = $this->logo->store('logos', 'public');
+
+            // Simpan langsung ke public/logos/ — tidak butuh symlink
+            $ext      = $this->logo->getClientOriginalExtension();
+            $filename = Str::random(40) . '.' . $ext;
+            $dir      = public_path('logos');
+
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+
+            $this->logo->move($dir, $filename);
+            $data['company_logo'] = 'logos/' . $filename;
             $this->logo = null;
         }
 
@@ -60,17 +80,22 @@ class SettingIndex extends Component {
         session()->flash('message', 'Pengaturan berhasil disimpan!');
     }
 
-    public function deleteLogo() {
+    public function deleteLogo()
+    {
         $s = Setting::getSettings();
         if ($s->company_logo) {
-            Storage::disk('public')->delete($s->company_logo);
+            $path = public_path($s->company_logo);
+            if (file_exists($path)) {
+                @unlink($path);
+            }
             $s->update(['company_logo' => null]);
         }
         $this->logo = null;
         session()->flash('message', 'Logo berhasil dihapus.');
     }
 
-    public function render() {
+    public function render()
+    {
         $setting = Setting::getSettings();
         return view('livewire.settings.setting-index', compact('setting'));
     }

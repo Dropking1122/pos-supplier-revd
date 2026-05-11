@@ -15,8 +15,8 @@
     <meta property="og:type" content="website">
 
     @if($setting->company_logo)
-    <link rel="icon" href="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}">
-    <link rel="apple-touch-icon" href="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}">
+    <link rel="icon" href="{{ asset($setting->company_logo) }}">
+    <link rel="apple-touch-icon" href="{{ asset($setting->company_logo) }}">
     @else
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M13 10V3L4 14h7v7l9-11h-7z'/></svg>">
     @endif
@@ -51,7 +51,7 @@
             <div class="mb-8 flex justify-center">
                 @if($setting->company_logo)
                 <div class="w-24 h-24 bg-white/15 backdrop-blur-sm rounded-2xl p-3 border border-white/20 shadow-xl">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}"
+                    <img src="{{ asset($setting->company_logo) }}"
                          alt="{{ $setting->company_name }}"
                          class="w-full h-full object-contain">
                 </div>
@@ -110,7 +110,7 @@
             <div class="flex flex-col items-center mb-8 lg:hidden">
                 @if($setting->company_logo)
                 <div class="w-16 h-16 bg-white rounded-xl shadow-sm border border-gray-200 p-2 mb-3">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($setting->company_logo) }}"
+                    <img src="{{ asset($setting->company_logo) }}"
                          alt="{{ $setting->company_name }}"
                          class="w-full h-full object-contain">
                 </div>

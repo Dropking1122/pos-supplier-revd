@@ -70,7 +70,7 @@ td.c { text-align: center; }
 <div class="header">
     <div class="header-left">
         @if($setting->company_logo)
-        <img class="logo" src="{{ public_path('storage/'.$setting->company_logo) }}" alt="Logo">
+        <img class="logo" src="{{ public_path($setting->company_logo) }}" alt="Logo">
         @endif
         <div>
             <div class="company-name">{{ $setting->company_name }}</div>
