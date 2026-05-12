@@ -5,6 +5,7 @@ use App\Models\Setting;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class SettingIndex extends Component
 {
@@ -12,6 +13,7 @@ class SettingIndex extends Component
 
     public $company_name = '', $company_address = '', $company_phone = '', $invoice_footer = '', $petugas = '';
     public $logo;
+    public $showResetModal = false, $resetConfirmText = '', $resetKeepProducts = true;
 
     protected function rules()
     {
@@ -77,7 +79,7 @@ class SettingIndex extends Component
         }
 
         $s->update($data);
-        session()->flash('message', 'Pengaturan berhasil disimpan!');
+        $this->dispatch('toast', type: 'success', message: 'Pengaturan toko berhasil disimpan.');
     }
 
     public function deleteLogo()
@@ -91,7 +93,36 @@ class SettingIndex extends Component
             $s->update(['company_logo' => null]);
         }
         $this->logo = null;
-        session()->flash('message', 'Logo berhasil dihapus.');
+        $this->dispatch('toast', type: 'success', message: 'Logo berhasil dihapus.');
+    }
+
+    public function resetDatabase()
+    {
+        if (strtoupper(trim($this->resetConfirmText)) !== 'RESET') {
+            $this->addError('resetConfirmText', 'Ketik RESET untuk konfirmasi.');
+            return;
+        }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('debt_payments')->truncate();
+        DB::table('debts')->truncate();
+        DB::table('sale_details')->truncate();
+        DB::table('sales')->truncate();
+        DB::table('customers')->truncate();
+        if (!$this->resetKeepProducts) {
+            DB::table('products')->truncate();
+        }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
+        $this->showResetModal  = false;
+        $this->resetConfirmText = '';
+
+        $this->dispatch('toast',
+            type: 'success',
+            title: 'Database Direset',
+            message: 'Semua data transaksi & customer telah dihapus. Akun & pengaturan tetap aman.',
+            duration: 6000
+        );
     }
 
     public function render()
