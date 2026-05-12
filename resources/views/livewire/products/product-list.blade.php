@@ -131,12 +131,6 @@
                         <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ $product->kode_barang }}</td>
                         <td class="px-4 py-3">
                             <div class="font-medium text-gray-800">{{ $product->nama_barang }}</div>
-                            @if($product->isLowStock())
-                                <span class="inline-flex items-center gap-1 text-xs text-red-500 mt-0.5">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
-                                    Stok Rendah
-                                </span>
-                            @endif
                         </td>
                         <td class="px-4 py-3 text-gray-500 hidden md:table-cell">{{ $product->jenis_barang ?? '-' }}</td>
                         <td class="px-4 py-3 text-right whitespace-nowrap">
@@ -195,12 +189,6 @@
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
                         <p class="font-semibold text-gray-800 text-sm">{{ $product->nama_barang }}</p>
-                        @if($product->isLowStock())
-                            <span class="inline-flex items-center gap-0.5 bg-red-100 text-red-600 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
-                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
-                                Stok Rendah
-                            </span>
-                        @endif
                     </div>
                     <p class="text-[11px] text-gray-400 font-mono mt-0.5">{{ $product->kode_barang }}{{ $product->jenis_barang ? ' · '.$product->jenis_barang : '' }}</p>
                 </div>

@@ -229,12 +229,9 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
                     {{ number_format($qty, 0, ',', '.') }}
                 </td>
                 <td class="r">
-                    <span style="font-weight:600; color:{{ $lowStock ? '#b91c1c' : '#334155' }}">
+                    <span style="font-weight:600; color:#334155;">
                         {{ number_format($stockSisa, 0, ',', '.') }}
                     </span>
-                    @if($lowStock)
-                        <span style="display:inline-block;font-size:9px;background:#fee2e2;color:#b91c1c;padding:1px 4px;border-radius:3px;margin-left:2px;font-weight:700;">LOW</span>
-                    @endif
                 </td>
                 <td class="r" style="color:#64748b;">
                     Rp {{ number_format($totalModalItem, 0, ',', '.') }}

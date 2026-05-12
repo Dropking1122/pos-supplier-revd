@@ -104,35 +104,35 @@
 
         <!-- Low Stock -->
         <div class="bg-white rounded-xl shadow-sm p-4 sm:p-5">
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Stok Hampir Habis</h3>
                 </div>
-                <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Stok Hampir Habis</h3>
+                @if($lowStockProducts->count() > 0)
+                <a href="{{ route('products.index') }}?filterLowStock=1"
+                   class="text-xs text-red-500 hover:text-red-700 font-medium whitespace-nowrap">
+                    Lihat semua →
+                </a>
+                @endif
             </div>
             @forelse($lowStockProducts as $product)
-            <div class="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
+            <a href="{{ route('products.index') }}?filterLowStock=1"
+               class="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 hover:bg-red-50 -mx-4 sm:-mx-5 px-4 sm:px-5 transition-colors">
                 <div class="min-w-0 mr-3">
                     <p class="text-xs sm:text-sm font-medium text-gray-800 truncate">{{ $product->nama_barang }}</p>
                     <p class="text-[10px] sm:text-xs text-gray-400">{{ $product->kode_barang }}</p>
                 </div>
                 <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold shrink-0">{{ $product->kuantitas }}</span>
-            </div>
+            </a>
             @empty
             <div class="flex flex-col items-center gap-2 py-6 text-gray-400">
                 <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <p class="text-sm text-green-600 font-medium">Semua stok aman</p>
             </div>
             @endforelse
-            @if($lowStockProducts->count() > 0)
-            <div class="mt-4 pt-3 border-t border-gray-100">
-                <a href="{{ route('products.index') }}?filterLowStock=1"
-                   class="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs py-2 px-3 rounded-lg transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    Lihat {{ $lowStockProducts->count() }} produk hampir habis
-                </a>
-            </div>
-            @endif
         </div>
     </div>
 
