@@ -82,10 +82,14 @@
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                 Invoice
                             </a>
-                            <a href="{{ route('sales.invoice-excel', $sale->id) }}" class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-800 text-xs bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors">
+                            <a href="{{ route('sales.invoice-excel', $sale->id) }}" class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-800 text-xs bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors mr-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 Excel
                             </a>
+                            <button wire:click="confirmDelete({{ $sale->id }})" class="inline-flex items-center gap-1 text-red-500 hover:text-red-700 text-xs bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                Hapus
+                            </button>
                         </td>
                     </tr>
                     @empty
@@ -96,4 +100,48 @@
         </div>
         <div class="px-4 py-3 border-t">{{ $sales->links() }}</div>
     </div>
+
+    {{-- Delete Confirmation Modal --}}
+    @if($showDeleteModal)
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-gray-800">Hapus Transaksi?</h3>
+                        <p class="text-sm text-gray-500 mt-0.5">Invoice: <span class="font-mono font-semibold text-red-600">{{ $deleteSaleInvoice }}</span></p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-sm text-amber-800 space-y-1">
+                    <p class="font-semibold flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                        Tindakan ini tidak dapat dibatalkan!
+                    </p>
+                    <ul class="list-disc list-inside space-y-0.5 text-amber-700 text-xs mt-1">
+                        <li>Stok setiap produk dalam transaksi ini akan dikembalikan</li>
+                        <li>Data hutang & cicilan terkait akan ikut terhapus</li>
+                        <li>Total profit & laporan akan otomatis berubah</li>
+                    </ul>
+                </div>
+                <div class="flex gap-3">
+                    <button wire:click="$set('showDeleteModal', false)"
+                            class="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                        Batal
+                    </button>
+                    <button wire:click="deleteSale" wire:loading.attr="disabled"
+                            class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+                        <span wire:loading.remove wire:target="deleteSale">
+                            <svg class="w-4 h-4 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            Ya, Hapus Transaksi
+                        </span>
+                        <span wire:loading wire:target="deleteSale">Menghapus...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

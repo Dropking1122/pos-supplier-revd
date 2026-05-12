@@ -72,19 +72,19 @@ class SaleCreate extends Component {
         return collect($this->items)->filter(fn($item) => (float)$item['unit_price'] < (float)$item['modal_awal']);
     }
     public function save() {
-        if (empty($this->items)) { session()->flash('error','Tambahkan minimal 1 barang!'); return; }
+        if (empty($this->items)) { $this->dispatch('toast', type: 'warning', message: 'Tambahkan minimal 1 barang sebelum menyimpan transaksi.'); return; }
 
         if ($this->payment_type === 'tempo') {
             if (!$this->customer_id) {
-                session()->flash('error','Customer wajib dipilih untuk pembayaran tempo/kredit.');
+                $this->dispatch('toast', type: 'error', message: 'Customer wajib dipilih untuk pembayaran tempo/kredit.');
                 return;
             }
             if (!$this->due_date) {
-                session()->flash('error','Tanggal jatuh tempo wajib diisi untuk pembayaran tempo/kredit.');
+                $this->dispatch('toast', type: 'error', message: 'Tanggal jatuh tempo wajib diisi untuk pembayaran tempo/kredit.');
                 return;
             }
             if ($this->due_date < now()->format('Y-m-d')) {
-                session()->flash('error','Tanggal jatuh tempo tidak boleh di masa lalu.');
+                $this->dispatch('toast', type: 'error', message: 'Tanggal jatuh tempo tidak boleh di masa lalu.');
                 return;
             }
         }
@@ -92,11 +92,11 @@ class SaleCreate extends Component {
         foreach ($this->items as $item) {
             $product = Product::findOrFail($item['product_id']);
             if ((int)$item['quantity'] > $product->kuantitas) {
-                session()->flash('error','Stok "'.$product->nama_barang.'" tidak cukup. Tersedia: '.$product->kuantitas.' unit, diminta: '.$item['quantity'].' unit.');
+                $this->dispatch('toast', type: 'error', message: 'Stok "'.$product->nama_barang.'" tidak cukup. Tersedia: '.$product->kuantitas.' unit, diminta: '.$item['quantity'].' unit.');
                 return;
             }
             if ((int)$item['quantity'] < 1) {
-                session()->flash('error','Qty "'.$product->nama_barang.'" harus minimal 1.');
+                $this->dispatch('toast', type: 'error', message: 'Qty "'.$product->nama_barang.'" harus minimal 1.');
                 return;
             }
         }
@@ -140,7 +140,7 @@ class SaleCreate extends Component {
                 'status'      => 'belum_lunas',
             ]);
         }
-        session()->flash('message','Transaksi berhasil disimpan! Invoice: '.$invoiceNumber);
+        session()->flash('toast_success', 'Transaksi berhasil disimpan! Invoice: '.$invoiceNumber);
         return redirect()->route('sales.index');
     }
     public function render() {

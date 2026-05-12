@@ -51,7 +51,7 @@ class DebtList extends Component {
             $sale->status = $debt->status === 'lunas' ? 'paid' : 'partial';
             $sale->save();
         }
-        session()->flash('message','Pembayaran berhasil dicatat!');
+        $this->dispatch('toast', type: 'success', title: 'Pembayaran Dicatat', message: 'Pembayaran Rp '.number_format($this->payAmount,0,',','.').' berhasil dicatat.');
         $this->showPayModal = false;
     }
     public function render() {

@@ -190,18 +190,6 @@
 
         <!-- Page Content -->
         <main class="flex-1 overflow-y-auto p-4 md:p-6">
-            @if(session('message'))
-                <div class="mb-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    {{ session('message') }}
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    {{ session('error') }}
-                </div>
-            @endif
             {{ $slot }}
         </main>
 
@@ -212,5 +200,99 @@
     </div>
 </div>
 @livewireScripts
+
+@if(session('toast_success') || session('message'))
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: @js(session('toast_success') ?? session('message')) } }));
+    });
+</script>
+@endif
+@if(session('toast_error') || session('error'))
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: @js(session('toast_error') ?? session('error')) } }));
+    });
+</script>
+@endif
+
+<!-- Toast Container -->
+<div
+    x-data="{
+        toasts: [],
+        add(toast) {
+            const id = Date.now() + Math.random();
+            this.toasts.push({ id, ...toast, visible: false, removing: false });
+            this.$nextTick(() => {
+                const t = this.toasts.find(t => t.id === id);
+                if (t) t.visible = true;
+            });
+            setTimeout(() => this.remove(id), toast.duration ?? 4000);
+        },
+        remove(id) {
+            const t = this.toasts.find(t => t.id === id);
+            if (!t || t.removing) return;
+            t.removing = true;
+            setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 350);
+        }
+    }"
+    @toast.window="add($event.detail)"
+    class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 w-80 pointer-events-none"
+>
+    <template x-for="toast in toasts" :key="toast.id">
+        <div
+            :class="{
+                'translate-x-0 opacity-100': toast.visible && !toast.removing,
+                'translate-x-full opacity-0': !toast.visible || toast.removing
+            }"
+            class="pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg border transition-all duration-300 ease-out"
+            :style="toast.type === 'success' ? 'background:#f0fdf4;border-color:#bbf7d0;'
+                  : toast.type === 'error'   ? 'background:#fef2f2;border-color:#fecaca;'
+                  : toast.type === 'warning' ? 'background:#fffbeb;border-color:#fde68a;'
+                  :                            'background:#eff6ff;border-color:#bfdbfe;'"
+        >
+            <!-- Icon -->
+            <div class="shrink-0 mt-0.5">
+                <template x-if="toast.type === 'success'">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </template>
+                <template x-if="toast.type === 'error'">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </template>
+                <template x-if="toast.type === 'warning'">
+                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </template>
+                <template x-if="toast.type === 'info'">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </template>
+            </div>
+            <!-- Message -->
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold"
+                   :class="toast.type === 'success' ? 'text-green-800'
+                         : toast.type === 'error'   ? 'text-red-800'
+                         : toast.type === 'warning' ? 'text-yellow-800'
+                         :                            'text-blue-800'"
+                   x-text="toast.title ?? (toast.type === 'success' ? 'Berhasil' : toast.type === 'error' ? 'Gagal' : toast.type === 'warning' ? 'Perhatian' : 'Info')">
+                </p>
+                <p class="text-xs mt-0.5 leading-relaxed"
+                   :class="toast.type === 'success' ? 'text-green-700'
+                         : toast.type === 'error'   ? 'text-red-700'
+                         : toast.type === 'warning' ? 'text-yellow-700'
+                         :                            'text-blue-700'"
+                   x-text="toast.message">
+                </p>
+            </div>
+            <!-- Close -->
+            <button @click="remove(toast.id)" class="shrink-0 opacity-50 hover:opacity-100 transition-opacity mt-0.5"
+                    :class="toast.type === 'success' ? 'text-green-700'
+                          : toast.type === 'error'   ? 'text-red-700'
+                          : toast.type === 'warning' ? 'text-yellow-700'
+                          :                            'text-blue-700'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </template>
+</div>
 </body>
 </html>

@@ -103,16 +103,18 @@ class ProductList extends Component {
 
         if ($this->editId) {
             Product::findOrFail($this->editId)->update($this->only(['kode_barang','nama_barang','jenis_barang','kuantitas','modal_awal','harga_grosir','harga_ecer','harga_satuan','stock_minimum']));
-            session()->flash('message','Produk berhasil diupdate!');
+            $this->dispatch('toast', type: 'success', message: 'Produk '.$this->nama_barang.' berhasil diperbarui.');
         } else {
             Product::create($this->only(['kode_barang','nama_barang','jenis_barang','kuantitas','modal_awal','harga_grosir','harga_ecer','harga_satuan','stock_minimum']));
-            session()->flash('message','Produk berhasil ditambahkan!');
+            $this->dispatch('toast', type: 'success', message: 'Produk '.$this->nama_barang.' berhasil ditambahkan.');
         }
         $this->showModal = false;
     }
     public function delete($id) {
-        Product::findOrFail($id)->delete();
-        session()->flash('message','Produk berhasil dihapus!');
+        $p = Product::findOrFail($id);
+        $nama = $p->nama_barang;
+        $p->delete();
+        $this->dispatch('toast', type: 'success', message: 'Produk "'.$nama.'" berhasil dihapus.');
     }
     public function openRestock($id) {
         $p = Product::findOrFail($id);
@@ -125,8 +127,9 @@ class ProductList extends Component {
         $this->validate(['restockJumlah' => 'required|integer|min:1'], [
             'restockJumlah.min' => 'Jumlah restock minimal 1.',
         ]);
-        Product::findOrFail($this->restockId)->increment('kuantitas', $this->restockJumlah);
-        session()->flash('message', 'Restock berhasil! Stok ditambah '.$this->restockJumlah.' unit.');
+        $p = Product::findOrFail($this->restockId);
+        $p->increment('kuantitas', $this->restockJumlah);
+        $this->dispatch('toast', type: 'success', message: 'Restock "'.$p->nama_barang.'" berhasil. Stok ditambah '.$this->restockJumlah.' unit.');
         $this->showRestockModal = false;
     }
     public function render() {
