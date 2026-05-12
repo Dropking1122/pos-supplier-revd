@@ -1,4 +1,10 @@
 <div>
+    @if(session('error'))
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 flex items-start gap-2 text-sm">
+        <svg class="w-4 h-4 mt-0.5 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        {{ session('error') }}
+    </div>
+    @endif
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left: Items -->
         <div class="lg:col-span-2 space-y-4">
@@ -52,10 +58,17 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse($items as $i => $item)
-                            <tr>
+                            @php $isLoss = (float)$item['unit_price'] < (float)$item['modal_awal']; @endphp
+                            <tr class="{{ $isLoss ? 'bg-red-50' : '' }}">
                                 <td class="px-4 py-3">
                                     <p class="font-medium">{{ $item['nama_barang'] }}</p>
                                     <p class="text-xs text-gray-400">{{ $item['kode_barang'] }}</p>
+                                    @if($isLoss)
+                                    <p class="text-[10px] text-red-600 font-semibold mt-0.5 flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                                        Harga jual di bawah modal! (rugi Rp {{ number_format((float)$item['modal_awal'] - (float)$item['unit_price'],0,',','.') }}/unit)
+                                    </p>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <select wire:model="items.{{ $i }}.price_type" wire:change="updatePriceType({{ $i }})" class="border border-gray-300 rounded px-2 py-1 text-xs">
@@ -107,13 +120,21 @@
             <div class="bg-white rounded-xl shadow-sm p-5 space-y-4">
                 <h3 class="font-semibold text-gray-700">Detail Transaksi</h3>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-                    <select wire:model="customer_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Customer
+                        @if($payment_type === 'tempo') <span class="text-red-500">*</span> @endif
+                    </label>
+                    <select wire:model="customer_id"
+                            class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
+                                   {{ $payment_type === 'tempo' && !$customer_id ? 'border-orange-300 focus:ring-orange-400' : 'border-gray-300 focus:ring-indigo-500' }}">
                         <option value="">-- Customer Umum --</option>
                         @foreach($customers as $c)
                         <option value="{{ $c->id }}">{{ $c->name }}</option>
                         @endforeach
                     </select>
+                    @if($payment_type === 'tempo' && !$customer_id)
+                    <p class="text-xs text-orange-500 mt-0.5">Customer wajib dipilih untuk pembayaran tempo.</p>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Pembayaran</label>
@@ -128,8 +149,13 @@
                 </div>
                 @if($payment_type === 'tempo')
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Jatuh Tempo</label>
-                    <input wire:model="due_date" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Jatuh Tempo <span class="text-red-500">*</span></label>
+                    <input wire:model="due_date" type="date" min="{{ now()->format('Y-m-d') }}"
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
+                                  {{ !$due_date ? 'border-orange-300 focus:ring-orange-400' : 'border-gray-300 focus:ring-indigo-500' }}">
+                    @if(!$due_date)
+                    <p class="text-xs text-orange-500 mt-0.5">Tanggal jatuh tempo wajib diisi.</p>
+                    @endif
                 </div>
                 @endif
                 <div>

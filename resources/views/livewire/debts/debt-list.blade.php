@@ -77,9 +77,18 @@
                 <button wire:click="$set('showPayModal',false)" class="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form wire:submit="savePayment" class="p-6 space-y-4">
+                @php $activeDebt = $payDebtId ? \App\Models\Debt::find($payDebtId) : null; @endphp
+                @if($activeDebt)
+                <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2.5 text-sm flex justify-between items-center">
+                    <span class="text-blue-700">Sisa hutang saat ini</span>
+                    <span class="font-bold text-blue-800">Rp {{ number_format($activeDebt->sisa_hutang,0,',','.') }}</span>
+                </div>
+                @endif
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Bayar (Rp) *</label>
-                    <input wire:model="payAmount" type="number" min="1" step="1000" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input wire:model="payAmount" type="number" min="1" step="1000"
+                           max="{{ $activeDebt ? $activeDebt->sisa_hutang : '' }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     @error('payAmount') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                 </div>
                 <div>

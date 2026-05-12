@@ -299,17 +299,38 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Modal Awal (Rp)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Modal Awal (Rp) <span class="text-red-500">*</span></label>
                     <input wire:model="modal_awal" type="number" min="0" step="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    @error('modal_awal') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Harga Grosir (Rp)</label>
-                        <input wire:model="harga_grosir" type="number" min="0" step="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <input wire:model="harga_grosir" type="number" min="0" step="100"
+                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
+                                      {{ $errors->has('harga_grosir') ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-indigo-500' }}">
+                        @error('harga_grosir') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @if(!$errors->has('harga_grosir') && (float)$harga_grosir > 0 && (float)$modal_awal > 0)
+                            @php $marginGrosir = (float)$harga_grosir - (float)$modal_awal; @endphp
+                            <p class="text-xs mt-0.5 {{ $marginGrosir >= 0 ? 'text-green-600' : 'text-red-500 font-semibold' }}">
+                                Margin: {{ $marginGrosir >= 0 ? '+' : '' }}Rp {{ number_format(abs($marginGrosir),0,',','.') }}
+                                ({{ (float)$modal_awal > 0 ? number_format(($marginGrosir/(float)$modal_awal)*100,1) : 0 }}%)
+                            </p>
+                        @endif
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Harga Ecer (Rp)</label>
-                        <input wire:model="harga_ecer" type="number" min="0" step="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <input wire:model="harga_ecer" type="number" min="0" step="100"
+                               class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
+                                      {{ $errors->has('harga_ecer') ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-indigo-500' }}">
+                        @error('harga_ecer') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @if(!$errors->has('harga_ecer') && (float)$harga_ecer > 0 && (float)$modal_awal > 0)
+                            @php $marginEcer = (float)$harga_ecer - (float)$modal_awal; @endphp
+                            <p class="text-xs mt-0.5 {{ $marginEcer >= 0 ? 'text-green-600' : 'text-red-500 font-semibold' }}">
+                                Margin: {{ $marginEcer >= 0 ? '+' : '' }}Rp {{ number_format(abs($marginEcer),0,',','.') }}
+                                ({{ (float)$modal_awal > 0 ? number_format(($marginEcer/(float)$modal_awal)*100,1) : 0 }}%)
+                            </p>
+                        @endif
                     </div>
                 </div>
                 <div>

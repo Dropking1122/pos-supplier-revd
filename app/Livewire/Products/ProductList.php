@@ -32,6 +32,16 @@ class ProductList extends Component {
         'stock_minimum'=> 'required|integer|min:0',
     ];
 
+    protected $messages = [
+        'kode_barang.required' => 'Kode barang wajib diisi.',
+        'nama_barang.required' => 'Nama barang wajib diisi.',
+        'kuantitas.min'        => 'Kuantitas tidak boleh negatif.',
+        'modal_awal.min'       => 'Modal awal tidak boleh negatif.',
+        'harga_grosir.min'     => 'Harga grosir tidak boleh negatif.',
+        'harga_ecer.min'       => 'Harga ecer tidak boleh negatif.',
+        'stock_minimum.min'    => 'Stok minimum tidak boleh negatif.',
+    ];
+
     public function updatingSearch() { $this->resetPage(); }
     public function updatingFilterLowStock() { $this->resetPage(); }
 
@@ -65,7 +75,32 @@ class ProductList extends Component {
         $this->showModal   = true;
     }
     public function save() {
-        $this->validate();
+        $uniqueRule = $this->editId
+            ? 'unique:products,kode_barang,'.$this->editId
+            : 'unique:products,kode_barang';
+        $this->validate(array_merge($this->rules, [
+            'kode_barang' => ['required', 'string', 'max:100', $uniqueRule],
+        ]), array_merge($this->messages, [
+            'kode_barang.unique' => 'Kode barang sudah digunakan produk lain.',
+        ]));
+
+        $modal   = (float) $this->modal_awal;
+        $grosir  = (float) $this->harga_grosir;
+        $ecer    = (float) $this->harga_ecer;
+
+        if ($grosir > 0 && $grosir < $modal) {
+            $this->addError('harga_grosir', 'Harga grosir (Rp '.number_format($grosir,0,',','.').'.) lebih rendah dari modal (Rp '.number_format($modal,0,',','.').') — akan menyebabkan kerugian.');
+            return;
+        }
+        if ($ecer > 0 && $ecer < $modal) {
+            $this->addError('harga_ecer', 'Harga ecer (Rp '.number_format($ecer,0,',','.').'.) lebih rendah dari modal (Rp '.number_format($modal,0,',','.').') — akan menyebabkan kerugian.');
+            return;
+        }
+        if ($ecer > 0 && $grosir > 0 && $ecer < $grosir) {
+            $this->addError('harga_ecer', 'Harga ecer tidak boleh lebih rendah dari harga grosir.');
+            return;
+        }
+
         if ($this->editId) {
             Product::findOrFail($this->editId)->update($this->only(['kode_barang','nama_barang','jenis_barang','kuantitas','modal_awal','harga_grosir','harga_ecer','harga_satuan','stock_minimum']));
             session()->flash('message','Produk berhasil diupdate!');

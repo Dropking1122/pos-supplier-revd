@@ -32,8 +32,14 @@ class DebtList extends Component {
         $this->showPayModal = true;
     }
     public function savePayment() {
-        $this->validate(['payAmount'=>'required|numeric|min:1','payDate'=>'required|date']);
         $debt = Debt::findOrFail($this->payDebtId);
+        $this->validate([
+            'payAmount' => ['required','numeric','min:1','max:'.$debt->sisa_hutang],
+            'payDate'   => 'required|date',
+        ], [
+            'payAmount.max' => 'Jumlah bayar tidak boleh melebihi sisa hutang (Rp '.number_format($debt->sisa_hutang,0,',','.').').',
+            'payAmount.min' => 'Jumlah bayar minimal Rp 1.',
+        ]);
         DebtPayment::create(['debt_id'=>$debt->id,'amount'=>$this->payAmount,'payment_date'=>$this->payDate,'notes'=>$this->payNotes]);
         $debt->total_bayar += $this->payAmount;
         $debt->sisa_hutang = max(0, $debt->total_hutang - $debt->total_bayar);

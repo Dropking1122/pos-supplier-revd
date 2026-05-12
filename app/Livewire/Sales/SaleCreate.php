@@ -68,8 +68,39 @@ class SaleCreate extends Component {
     }
     public function removeItem($index) { array_splice($this->items, $index, 1); }
     public function getTotal() { return collect($this->items)->sum('subtotal'); }
+    public function getLossItems() {
+        return collect($this->items)->filter(fn($item) => (float)$item['unit_price'] < (float)$item['modal_awal']);
+    }
     public function save() {
         if (empty($this->items)) { session()->flash('error','Tambahkan minimal 1 barang!'); return; }
+
+        if ($this->payment_type === 'tempo') {
+            if (!$this->customer_id) {
+                session()->flash('error','Customer wajib dipilih untuk pembayaran tempo/kredit.');
+                return;
+            }
+            if (!$this->due_date) {
+                session()->flash('error','Tanggal jatuh tempo wajib diisi untuk pembayaran tempo/kredit.');
+                return;
+            }
+            if ($this->due_date < now()->format('Y-m-d')) {
+                session()->flash('error','Tanggal jatuh tempo tidak boleh di masa lalu.');
+                return;
+            }
+        }
+
+        foreach ($this->items as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            if ((int)$item['quantity'] > $product->kuantitas) {
+                session()->flash('error','Stok "'.$product->nama_barang.'" tidak cukup. Tersedia: '.$product->kuantitas.' unit, diminta: '.$item['quantity'].' unit.');
+                return;
+            }
+            if ((int)$item['quantity'] < 1) {
+                session()->flash('error','Qty "'.$product->nama_barang.'" harus minimal 1.');
+                return;
+            }
+        }
+
         $invoiceNumber = 'INV-'.date('Ymd').'-'.strtoupper(Str::random(5));
         $total = $this->getTotal();
         $amountPaid = $this->payment_type === 'cash' ? $total : 0;
