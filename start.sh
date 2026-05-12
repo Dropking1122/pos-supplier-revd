@@ -63,4 +63,9 @@ php artisan config:clear 2>/dev/null || true
 php artisan storage:link --force 2>/dev/null || true
 php artisan migrate --force 2>/dev/null || true
 php artisan db:seed --force 2>/dev/null || true
+
+# Jalankan Laravel Scheduler di background (untuk backup otomatis)
+php artisan schedule:work >> /tmp/scheduler.log 2>&1 &
+echo "Laravel Scheduler berjalan (PID: $!)"
+
 php artisan serve --host=0.0.0.0 --port=5000
