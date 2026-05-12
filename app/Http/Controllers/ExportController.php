@@ -205,6 +205,166 @@ class ExportController extends Controller
         ]);
     }
 
+    public function customerExcel(Request $request)
+    {
+        $customerId = $request->customer_id;
+        if (!$customerId) abort(400, 'customer_id diperlukan.');
+
+        $customer = \App\Models\Customer::findOrFail($customerId);
+        $sales    = Sale::with(['details.product'])
+            ->where('customer_id', $customerId)
+            ->latest()
+            ->get();
+        $setting  = Setting::getSettings();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Rekap Customer');
+
+        // ── Header toko & customer ─────────────────────────────────────────
+        $sheet->setCellValue('A1', $setting->company_name);
+        $sheet->setCellValue('A2', 'Rekap Transaksi Customer: ' . $customer->name);
+        if ($customer->phone) $sheet->setCellValue('A3', 'Telepon: ' . $customer->phone);
+        if ($customer->address) $sheet->setCellValue('A4', 'Alamat: ' . $customer->address);
+        $sheet->setCellValue('A5', 'Dicetak: ' . now()->format('d/m/Y H:i'));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(11);
+
+        $row = 7;
+
+        $grandTotal      = 0;
+        $grandModal      = 0;
+        $grandProfit     = 0;
+
+        foreach ($sales as $saleIdx => $sale) {
+            // ── Judul tiap transaksi ─────────────────────────────────────
+            $titleRange = "A{$row}:J{$row}";
+            $sheet->setCellValue("A{$row}", '#' . ($saleIdx + 1) . '  ' . $sale->invoice_number);
+            $sheet->setCellValue("F{$row}", $sale->created_at->format('d/m/Y H:i'));
+            $sheet->setCellValue("H{$row}", 'Status:');
+            $sheet->setCellValue("I{$row}", $sale->status === 'paid' ? 'LUNAS' : ($sale->status === 'partial' ? 'SEBAGIAN' : 'BELUM BAYAR'));
+            $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4338ca']],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+            $sheet->getRowDimension($row)->setRowHeight(22);
+            $row++;
+
+            // ── Header kolom produk ─────────────────────────────────────
+            $headers = ['A'=>'NAMA BARANG','B'=>'KODE','C'=>'TIPE','D'=>'HARGA BELI','E'=>'HARGA JUAL','F'=>'QTY','G'=>'STOK AWAL','H'=>'SISA STOK','I'=>'TOTAL MODAL','J'=>'TOTAL JUAL'];
+            foreach ($headers as $col => $label) {
+                $sheet->setCellValue("{$col}{$row}", $label);
+            }
+            $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 9],
+                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E36C09']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'C0C0C0']]],
+            ]);
+            $sheet->getRowDimension($row)->setRowHeight(20);
+            $row++;
+
+            // ── Data produk ─────────────────────────────────────────────
+            $saleModal  = 0;
+            $saleJual   = 0;
+            $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+
+            foreach ($sale->details as $detail) {
+                $product    = $detail->product;
+                $qty        = (int) $detail->quantity;
+                $stockAwal  = $detail->stock_before !== null ? (int) $detail->stock_before : ($product->kuantitas + $qty);
+                $stockSisa  = $stockAwal - $qty;
+                $hargaBeli  = (float) $product->modal_awal;
+                $hargaJual  = (float) $detail->unit_price;
+                $totalModal = $hargaBeli * $qty;
+                $totalJual  = (float) $detail->subtotal;
+
+                $saleModal += $totalModal;
+                $saleJual  += $totalJual;
+
+                $sheet->setCellValue("A{$row}", $product->nama_barang);
+                $sheet->setCellValue("B{$row}", $product->kode_barang);
+                $sheet->setCellValue("C{$row}", ucfirst($detail->price_type));
+                $sheet->setCellValue("D{$row}", $hargaBeli);
+                $sheet->setCellValue("E{$row}", $hargaJual);
+                $sheet->setCellValue("F{$row}", $qty);
+                $sheet->setCellValue("G{$row}", $stockAwal);
+                $sheet->setCellValue("H{$row}", $stockSisa);
+                $sheet->setCellValue("I{$row}", $totalModal);
+                $sheet->setCellValue("J{$row}", $totalJual);
+
+                foreach (['D','E','I','J'] as $c) {
+                    $sheet->getStyle("{$c}{$row}")->getNumberFormat()->setFormatCode($rpFmt);
+                }
+                $sheet->getStyle("F{$row}:H{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $bgColor = ($row % 2 === 0) ? 'F8FAFC' : 'FFFFFF';
+                $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                    'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bgColor]],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                    'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                ]);
+                $sheet->getRowDimension($row)->setRowHeight(20);
+                $row++;
+            }
+
+            // ── Subtotal transaksi ──────────────────────────────────────
+            $saleProfit = $saleJual - $saleModal;
+            $sheet->setCellValue("H{$row}", 'Subtotal:');
+            $sheet->setCellValue("I{$row}", $saleModal);
+            $sheet->setCellValue("J{$row}", $saleJual);
+            foreach (['I','J'] as $c) {
+                $sheet->getStyle("{$c}{$row}")->getNumberFormat()->setFormatCode($rpFmt);
+            }
+            $sheet->getStyle("H{$row}:J{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("H{$row}:J{$row}")->applyFromArray([
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EEF2FF']],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'C7D2FE']]],
+            ]);
+            $sheet->getRowDimension($row)->setRowHeight(20);
+            $row++;
+
+            $grandTotal  += $saleJual;
+            $grandModal  += $saleModal;
+            $grandProfit += $saleProfit;
+
+            $row++; // spasi antar transaksi
+        }
+
+        // ── Grand Total ────────────────────────────────────────────────────
+        $sheet->setCellValue("G{$row}", 'GRAND TOTAL');
+        $sheet->setCellValue("I{$row}", $grandModal);
+        $sheet->setCellValue("J{$row}", $grandTotal);
+        $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+        foreach (['I','J'] as $c) {
+            $sheet->getStyle("{$c}{$row}")->getNumberFormat()->setFormatCode($rpFmt);
+        }
+        $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getRowDimension($row)->setRowHeight(26);
+
+        // ── Lebar kolom ────────────────────────────────────────────────────
+        $colWidths = ['A'=>28,'B'=>12,'C'=>8,'D'=>14,'E'=>14,'F'=>7,'G'=>11,'H'=>11,'I'=>18,'J'=>18];
+        foreach ($colWidths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        $filename = 'rekap-' . \Illuminate\Support\Str::slug($customer->name) . '-' . now()->format('Ymd') . '.xlsx';
+        $writer   = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'max-age=0',
+        ]);
+    }
+
     public function pdf(Request $request)
     {
         $sales        = $this->getSales($request);

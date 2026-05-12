@@ -7,7 +7,11 @@ class SaleCreate extends Component {
     public $customer_id = '', $payment_type = 'cash', $due_date = '', $notes = '';
     public $items = [];
     public $productSearch = '', $productResults = [], $showProductSearch = false;
+    public $inputMode = 'qty';
     public function mount() { $this->items = []; }
+    public function toggleInputMode() {
+        $this->inputMode = $this->inputMode === 'qty' ? 'sisa' : 'qty';
+    }
     public function updatedProductSearch() {
         if (strlen($this->productSearch) >= 2) {
             $this->productResults = Product::where('nama_barang','like',"%{$this->productSearch}%")
@@ -36,6 +40,7 @@ class SaleCreate extends Component {
             'harga_grosir' => $product->harga_grosir,
             'modal_awal'   => $product->modal_awal,
             'stok'         => $product->kuantitas,
+            'sisa_input'   => $product->kuantitas - 1,
             'subtotal'     => $product->harga_ecer,
         ];
         $this->productSearch = ''; $this->showProductSearch = false;
@@ -48,11 +53,18 @@ class SaleCreate extends Component {
     public function recalcItem($index) {
         $stok = $this->items[$index]['stok'] ?? 0;
         $qty  = max(1, (int) $this->items[$index]['quantity']);
-        if ($qty > $stok) {
-            $qty = $stok;
-            $this->items[$index]['quantity'] = $qty;
-        }
+        if ($qty > $stok) { $qty = $stok; }
+        $this->items[$index]['quantity'] = $qty;
         $this->items[$index]['subtotal'] = $this->items[$index]['unit_price'] * $qty;
+    }
+    public function updateSisa($index) {
+        $stok = $this->items[$index]['stok'] ?? 0;
+        $sisa = max(0, (int) $this->items[$index]['sisa_input']);
+        if ($sisa >= $stok) { $sisa = $stok - 1; }
+        $this->items[$index]['sisa_input'] = $sisa;
+        $qty = $stok - $sisa;
+        $this->items[$index]['quantity'] = max(1, $qty);
+        $this->items[$index]['subtotal']  = $this->items[$index]['unit_price'] * $this->items[$index]['quantity'];
     }
     public function removeItem($index) { array_splice($this->items, $index, 1); }
     public function getTotal() { return collect($this->items)->sum('subtotal'); }
