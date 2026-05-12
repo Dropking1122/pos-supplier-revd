@@ -6,136 +6,283 @@
 <title>Invoice {{ $sale->invoice_number }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Arial, sans-serif; font-size: 13px; color: #333; }
-.container { max-width: 750px; margin: 0 auto; padding: 30px; }
-.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #4f46e5; padding-bottom: 20px; }
-.company-name { font-size: 22px; font-weight: bold; color: #4f46e5; }
-.company-info { font-size: 12px; color: #666; margin-top: 5px; }
-.invoice-label { font-size: 28px; font-weight: bold; color: #4f46e5; text-align: right; }
-.invoice-meta { font-size: 12px; color: #666; text-align: right; }
-.bill-to { margin-bottom: 25px; }
-.bill-to h4 { font-size: 11px; text-transform: uppercase; color: #999; margin-bottom: 5px; }
-.bill-to p { font-size: 14px; font-weight: 600; }
-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
-th { background: #4f46e5; color: white; padding: 10px 12px; text-align: left; font-size: 12px; }
-td { padding: 9px 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
-tr:hover td { background: #f9fafb; }
-.text-right { text-align: right; }
-.total-row td { font-weight: bold; font-size: 15px; background: #f3f4f6; border-top: 2px solid #4f46e5; }
-.status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-.status-paid { background: #d1fae5; color: #065f46; }
-.status-unpaid { background: #fee2e2; color: #991b1b; }
-.status-partial { background: #fef3c7; color: #92400e; }
-.footer-section { margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-.footer-note { font-size: 12px; color: #999; font-style: italic; }
-.payment-info { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; }
-@media print { .no-print { display: none; } body { print-color-adjust: exact; } }
+body { font-family: Arial, sans-serif; font-size: 12px; color: #1e293b; background: #f8fafc; }
+.page { max-width: 1050px; margin: 0 auto; padding: 32px; background: #fff; }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 3px solid #4f46e5; }
+.company-logo { height: 48px; margin-bottom: 8px; display: block; }
+.company-name { font-size: 20px; font-weight: 800; color: #4f46e5; letter-spacing: -0.3px; }
+.company-info { font-size: 11px; color: #64748b; margin-top: 3px; }
+.invoice-badge { font-size: 26px; font-weight: 900; color: #4f46e5; text-align: right; letter-spacing: 2px; }
+.invoice-meta { font-size: 11px; color: #64748b; text-align: right; margin-top: 3px; }
+.invoice-number { font-size: 13px; font-weight: 700; color: #334155; text-align: right; }
+
+/* Bill To */
+.meta-row { display: flex; gap: 20px; margin-bottom: 24px; }
+.meta-box { background: #f1f5f9; border-radius: 8px; padding: 12px 16px; flex: 1; }
+.meta-box-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 5px; }
+.meta-box-value { font-size: 13px; font-weight: 700; color: #1e293b; }
+.meta-box-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Status badge */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-paid { background: #dcfce7; color: #15803d; }
+.badge-unpaid { background: #fee2e2; color: #b91c1c; }
+.badge-partial { background: #fef9c3; color: #92400e; }
+
+/* Section title */
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; margin-bottom: 10px; padding-left: 2px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+thead tr { background: #4f46e5; }
+th { color: #fff; padding: 9px 10px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+th.r { text-align: right; }
+td { padding: 8px 10px; font-size: 11.5px; color: #334155; border-bottom: 1px solid #e2e8f0; }
+td.r { text-align: right; }
+tbody tr:nth-child(even) td { background: #f8fafc; }
+tbody tr:hover td { background: #eff6ff; }
+
+/* Summary table */
+.summary-table { margin-left: auto; width: 280px; border-collapse: collapse; margin-bottom: 24px; }
+.summary-table td { padding: 6px 10px; font-size: 12px; border: none; }
+.summary-table tr.total-row td { font-size: 14px; font-weight: 800; color: #4f46e5; border-top: 2px solid #4f46e5; padding-top: 8px; }
+.summary-table tr.profit-row td { font-size: 12px; font-weight: 700; color: #15803d; }
+
+/* Payment Info */
+.payment-card { display: flex; justify-content: space-between; align-items: center; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; }
+.payment-card .left { font-size: 12px; line-height: 1.8; }
+.payment-card .right { text-align: right; font-size: 12px; }
+
+/* Notes */
+.notes-card { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 11.5px; color: #64748b; }
+
+/* Divider */
+.section-divider { border: none; border-top: 1px dashed #cbd5e1; margin: 24px 0; }
+
+/* Footer */
+.footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+.footer-note { font-size: 11px; color: #94a3b8; font-style: italic; max-width: 400px; }
+.signature { text-align: center; font-size: 11.5px; color: #64748b; }
+.signature-line { border-bottom: 1px solid #334155; width: 140px; margin: 44px auto 6px; }
+
+/* Print */
+@media print {
+    body { background: #fff; }
+    .no-print { display: none !important; }
+    .page { padding: 20px; box-shadow: none; }
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    @page { margin: 15mm; size: A4 landscape; }
+}
+
+/* Profit highlight */
+.profit-positive { color: #15803d; font-weight: 700; }
+.profit-zero { color: #64748b; }
+.profit-negative { color: #b91c1c; font-weight: 700; }
+.stock-low { color: #b91c1c; font-weight: 700; }
 </style>
 </head>
 <body>
-<div class="container">
-    <!-- Print button -->
-    <div class="no-print" style="margin-bottom:20px;">
-        <button onclick="window.print()" style="background:#4f46e5;color:white;padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨 Cetak Invoice</button>
-        <button onclick="window.close()" style="background:#e5e7eb;color:#333;padding:8px 20px;border:none;border-radius:6px;cursor:pointer;font-size:14px;margin-left:8px;">✕ Tutup</button>
+<div class="page">
+
+    {{-- Tombol Aksi --}}
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:24px;">
+        <button onclick="window.print()" style="background:#4f46e5;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
+            🖨 Cetak Invoice
+        </button>
+        <button onclick="window.close()" style="background:#f1f5f9;color:#334155;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;">
+            ✕ Tutup
+        </button>
     </div>
 
-    <!-- Header -->
+    {{-- Header --}}
     <div class="header">
         <div>
             @if($setting->company_logo)
-            <img src="{{ asset($setting->company_logo) }}" alt="Logo" style="height:50px;margin-bottom:8px;">
+                <img src="{{ asset($setting->company_logo) }}" alt="Logo" class="company-logo">
             @endif
             <div class="company-name">{{ $setting->company_name }}</div>
             <div class="company-info">{{ $setting->company_address }}</div>
             <div class="company-info">{{ $setting->company_phone }}</div>
         </div>
         <div>
-            <div class="invoice-label">INVOICE</div>
-            <div class="invoice-meta"># {{ $sale->invoice_number }}</div>
-            <div class="invoice-meta">Tanggal: {{ $sale->created_at->format('d/m/Y H:i') }}</div>
+            <div class="invoice-badge">INVOICE</div>
+            <div class="invoice-number" style="margin-top:4px;"># {{ $sale->invoice_number }}</div>
+            <div class="invoice-meta">Tanggal: {{ $sale->created_at->format('d M Y, H:i') }}</div>
             @if($sale->due_date)
-            <div class="invoice-meta">Jatuh Tempo: {{ $sale->due_date->format('d/m/Y') }}</div>
+                <div class="invoice-meta">Jatuh Tempo: {{ $sale->due_date->format('d M Y') }}</div>
             @endif
         </div>
     </div>
 
-    <!-- Bill To -->
-    @if($sale->customer)
-    <div class="bill-to">
-        <h4>Tagihan Kepada</h4>
-        <p>{{ $sale->customer->name }}</p>
-        @if($sale->customer->phone)<p style="font-size:12px;color:#666;">{{ $sale->customer->phone }}</p>@endif
-        @if($sale->customer->address)<p style="font-size:12px;color:#666;">{{ $sale->customer->address }}</p>@endif
+    {{-- Meta Row --}}
+    <div class="meta-row">
+        @if($sale->customer)
+        <div class="meta-box">
+            <div class="meta-box-label">Tagihan Kepada</div>
+            <div class="meta-box-value">{{ $sale->customer->name }}</div>
+            @if($sale->customer->phone)
+                <div class="meta-box-sub">📞 {{ $sale->customer->phone }}</div>
+            @endif
+            @if($sale->customer->address)
+                <div class="meta-box-sub">📍 {{ $sale->customer->address }}</div>
+            @endif
+        </div>
+        @endif
+        <div class="meta-box">
+            <div class="meta-box-label">Pembayaran</div>
+            <div class="meta-box-value">{{ $sale->payment_type === 'cash' ? 'Cash / Tunai' : 'Tempo / Kredit' }}</div>
+            <div class="meta-box-sub" style="margin-top:4px;">
+                <span class="badge {{ $sale->status==='paid' ? 'badge-paid' : ($sale->status==='partial' ? 'badge-partial' : 'badge-unpaid') }}">
+                    {{ $sale->status==='paid' ? '✓ LUNAS' : ($sale->status==='partial' ? '◑ SEBAGIAN' : '✕ BELUM BAYAR') }}
+                </span>
+            </div>
+        </div>
+        @if($sale->payment_type === 'tempo')
+        <div class="meta-box">
+            <div class="meta-box-label">Info Tempo</div>
+            <div class="meta-box-sub">Total: <strong>Rp {{ number_format($sale->total_amount,0,',','.') }}</strong></div>
+            <div class="meta-box-sub">Dibayar: <strong>Rp {{ number_format($sale->amount_paid,0,',','.') }}</strong></div>
+            <div class="meta-box-sub" style="color:#b91c1c;font-weight:700;">Sisa: Rp {{ number_format($sale->total_amount - $sale->amount_paid,0,',','.') }}</div>
+        </div>
+        @endif
+        <div class="meta-box" style="text-align:right;">
+            <div class="meta-box-label">Total Transaksi</div>
+            <div style="font-size:22px;font-weight:900;color:#4f46e5;">Rp {{ number_format($sale->total_amount,0,',','.') }}</div>
+            <div class="meta-box-sub">{{ $sale->details->count() }} item produk</div>
+        </div>
     </div>
-    @endif
 
-    <!-- Items Table -->
+    {{-- Rincian Produk --}}
+    <div class="section-title">Rincian Item Produk</div>
+
+    @php
+        $totalModal = 0;
+        $totalPendapatan = 0;
+        $totalKeuntungan = 0;
+    @endphp
+
+    <div style="overflow-x:auto;">
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Nama Barang</th>
-                <th>Harga Jenis</th>
-                <th class="text-right">Harga Satuan</th>
-                <th class="text-right">Qty</th>
-                <th class="text-right">Subtotal</th>
+                <th style="width:28px;">No</th>
+                <th>Nama Produk</th>
+                <th class="r">Stock Awal</th>
+                <th class="r">Terjual</th>
+                <th class="r">Sisa Stock</th>
+                <th class="r">Harga Modal</th>
+                <th class="r">Harga Beli</th>
+                <th class="r">Harga Jual</th>
+                <th class="r">Total Pendapatan</th>
+                <th class="r">Keuntungan</th>
             </tr>
         </thead>
         <tbody>
             @foreach($sale->details as $i => $detail)
+            @php
+                $product     = $detail->product;
+                $stockAwal   = $product->kuantitas + $detail->quantity;
+                $sisaStock   = $product->kuantitas;
+                $hargaModal  = (float) $product->modal_awal;
+                $hargaBeli   = $detail->price_type === 'grosir'
+                                ? (float) $product->harga_grosir
+                                : (float) $product->harga_ecer;
+                $hargaJual   = (float) $detail->unit_price;
+                $qty         = $detail->quantity;
+                $pendapatan  = (float) $detail->subtotal;
+                $keuntungan  = ($hargaJual - $hargaModal) * $qty;
+
+                $totalModal      += $hargaModal * $qty;
+                $totalPendapatan += $pendapatan;
+                $totalKeuntungan += $keuntungan;
+            @endphp
             <tr>
-                <td>{{ $i+1 }}</td>
-                <td>{{ $detail->product->nama_barang }}</td>
-                <td>{{ ucfirst($detail->price_type) }}</td>
-                <td class="text-right">Rp {{ number_format($detail->unit_price,0,',','.') }}</td>
-                <td class="text-right">{{ $detail->quantity }}</td>
-                <td class="text-right">Rp {{ number_format($detail->subtotal,0,',','.') }}</td>
+                <td>{{ $i + 1 }}</td>
+                <td>
+                    <div style="font-weight:600;">{{ $product->nama_barang }}</div>
+                    <div style="font-size:10px;color:#94a3b8;">{{ $product->kode_barang }} &bull; {{ ucfirst($detail->price_type) }}</div>
+                </td>
+                <td class="r">{{ number_format($stockAwal, 0, ',', '.') }}</td>
+                <td class="r" style="font-weight:600;">{{ number_format($qty, 0, ',', '.') }}</td>
+                <td class="r {{ $sisaStock <= $product->stock_minimum ? 'stock-low' : '' }}">
+                    {{ number_format($sisaStock, 0, ',', '.') }}
+                    @if($sisaStock <= $product->stock_minimum)
+                        <span style="font-size:9px;background:#fee2e2;color:#b91c1c;padding:1px 5px;border-radius:4px;margin-left:2px;">LOW</span>
+                    @endif
+                </td>
+                <td class="r" style="color:#64748b;">Rp {{ number_format($hargaModal, 0, ',', '.') }}</td>
+                <td class="r" style="color:#64748b;">Rp {{ number_format($hargaBeli, 0, ',', '.') }}</td>
+                <td class="r" style="font-weight:600;">Rp {{ number_format($hargaJual, 0, ',', '.') }}</td>
+                <td class="r" style="font-weight:700;">Rp {{ number_format($pendapatan, 0, ',', '.') }}</td>
+                <td class="r {{ $keuntungan > 0 ? 'profit-positive' : ($keuntungan < 0 ? 'profit-negative' : 'profit-zero') }}">
+                    {{ $keuntungan >= 0 ? '' : '-' }}Rp {{ number_format(abs($keuntungan), 0, ',', '.') }}
+                </td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
-            <tr class="total-row">
-                <td colspan="5" class="text-right">TOTAL</td>
-                <td class="text-right">Rp {{ number_format($sale->total_amount,0,',','.') }}</td>
+            <tr style="background:#f1f5f9;">
+                <td colspan="7" style="font-weight:700;font-size:12px;color:#334155;text-align:right;border-top:2px solid #4f46e5;padding-top:10px;">TOTAL</td>
+                <td></td>
+                <td class="r" style="font-weight:800;font-size:13px;color:#4f46e5;border-top:2px solid #4f46e5;padding-top:10px;">
+                    Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
+                </td>
+                <td class="r" style="font-weight:800;font-size:13px;border-top:2px solid #4f46e5;padding-top:10px;
+                    color:{{ $totalKeuntungan >= 0 ? '#15803d' : '#b91c1c' }}">
+                    {{ $totalKeuntungan >= 0 ? '' : '-' }}Rp {{ number_format(abs($totalKeuntungan), 0, ',', '.') }}
+                </td>
             </tr>
         </tfoot>
     </table>
+    </div>
 
-    <!-- Payment Status -->
-    <div class="payment-info">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div>
-                <strong>Jenis Pembayaran:</strong> {{ $sale->payment_type === 'cash' ? 'Cash' : 'Tempo' }}<br>
-                <strong>Status:</strong>
-                <span class="status-badge {{ $sale->status==='paid'?'status-paid':($sale->status==='partial'?'status-partial':'status-unpaid') }}">
-                    {{ $sale->status==='paid'?'LUNAS':($sale->status==='partial'?'SEBAGIAN':'BELUM BAYAR') }}
+    {{-- Ringkasan Keuangan --}}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;min-width:280px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;margin-bottom:10px;">Ringkasan Keuangan</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;">
+                <span style="color:#64748b;">Total Modal</span>
+                <span style="font-weight:600;">Rp {{ number_format($totalModal, 0, ',', '.') }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;">
+                <span style="color:#64748b;">Total Pendapatan</span>
+                <span style="font-weight:600;color:#4f46e5;">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</span>
+            </div>
+            <div style="border-top:1px solid #e2e8f0;margin:8px 0;"></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;">
+                <span style="font-weight:700;">Total Keuntungan</span>
+                <span style="font-weight:800;color:{{ $totalKeuntungan >= 0 ? '#15803d' : '#b91c1c' }}">
+                    {{ $totalKeuntungan >= 0 ? '+' : '-' }}Rp {{ number_format(abs($totalKeuntungan), 0, ',', '.') }}
                 </span>
             </div>
-            @if($sale->payment_type === 'tempo')
-            <div style="text-align:right;">
-                <div style="font-size:12px;color:#666;">Sudah Dibayar: Rp {{ number_format($sale->amount_paid,0,',','.') }}</div>
-                <div style="font-size:13px;font-weight:bold;color:#dc2626;">Sisa: Rp {{ number_format($sale->total_amount - $sale->amount_paid,0,',','.') }}</div>
+            @if($totalPendapatan > 0)
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;">
+                <span style="color:#94a3b8;">Margin</span>
+                <span style="color:#94a3b8;">{{ number_format(($totalKeuntungan / $totalPendapatan) * 100, 1) }}%</span>
             </div>
             @endif
         </div>
     </div>
 
     @if($sale->notes)
-    <div style="background:#fafafa;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin-bottom:20px;">
-        <strong style="font-size:12px;">Catatan:</strong><br>
-        <span style="font-size:12px;color:#666;">{{ $sale->notes }}</span>
+    <div class="notes-card">
+        <strong style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;">Catatan</strong><br>
+        <span style="margin-top:4px;display:block;">{{ $sale->notes }}</span>
     </div>
     @endif
 
-    <!-- Footer -->
-    <div class="footer-section">
+    {{-- Footer --}}
+    <div class="footer">
         <div class="footer-note">{{ $setting->invoice_footer }}</div>
-        <div style="text-align:center;font-size:12px;">
-            <p style="margin-bottom:40px;">_______________________</p>
-            <p>Petugas</p>
+        <div class="signature">
+            <div class="signature-line"></div>
+            <div style="font-weight:600;">{{ $setting->petugas ?? 'Petugas' }}</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">Tanda Tangan</div>
         </div>
     </div>
+
 </div>
 </body>
 </html>
