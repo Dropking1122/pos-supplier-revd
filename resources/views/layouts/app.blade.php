@@ -25,14 +25,18 @@
         <!-- Brand -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700/60">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
+                @if($setting->company_logo)
+                <img src="{{ asset($setting->company_logo) }}" alt="Logo" class="w-9 h-9 rounded-lg object-contain bg-white shrink-0">
+                @else
+                <div class="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
+                @endif
                 <div>
-                    <h1 class="text-sm font-bold leading-tight">POS Supplier</h1>
-                    <p class="text-xs text-slate-400 truncate max-w-[120px]">{{ $setting->company_name ?? 'Toko Saya' }}</p>
+                    <h1 class="text-sm font-bold leading-tight truncate max-w-[130px]">{{ $setting->company_name ?? 'Toko Saya' }}</h1>
+                    <p class="text-xs text-slate-400">POS System</p>
                 </div>
             </div>
             <button @click="sidebarOpen=false" class="md:hidden text-slate-400 hover:text-white p-1">

@@ -2,11 +2,13 @@
     <div class="flex flex-col sm:flex-row gap-3 mb-4 items-center justify-between">
         <input wire:model.live="search" type="text" placeholder="Cari nama / email..."
                class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        @if(auth()->user()->is_admin)
         <button wire:click="openCreate"
                 class="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Tambah User
         </button>
+        @endif
     </div>
 
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -47,6 +49,7 @@
                             <span class="px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Aktif</span>
                         </td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">
+                            @if(auth()->user()->is_admin)
                             <button wire:click="openEdit({{ $user->id }})"
                                     class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors mr-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -58,6 +61,9 @@
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 Hapus
                             </button>
+                            @endif
+                            @else
+                            <span class="text-xs text-gray-400">—</span>
                             @endif
                         </td>
                     </tr>

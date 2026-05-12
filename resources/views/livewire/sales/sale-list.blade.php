@@ -62,7 +62,7 @@
                         <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('status')">
                             <span class="flex items-center justify-center gap-1">Status <span class="{{ $sortClass('status') }}">{{ $sortIcon('status') }}</span></span>
                         </th>
-                        <th class="px-4 py-3 text-left">Petugas</th>
+                        <th class="px-4 py-3 text-left">Operator</th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>

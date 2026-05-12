@@ -425,7 +425,7 @@ class ExportController extends Controller
         $sales    = $this->getSales($request);
         $setting  = Setting::getSettings();
         $period   = $this->getPeriodLabel($request);
-        $filename = "laporan-penjualan-{$period}.csv";
+        $filename = "laporan-penjualan-{$period}.xlsx";
 
         $totalRevenue = $sales->sum('total_amount');
         $totalProfit  = $sales->sum(
@@ -437,112 +437,142 @@ class ExportController extends Controller
         $countUnpaid  = $sales->where('status', 'unpaid')->count();
         $totalUnpaid  = $sales->sum(fn($s) => $s->total_amount - $s->amount_paid);
 
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan Penjualan');
+
+        $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+
+        // ── Company Header ──────────────────────────
+        $sheet->setCellValue('A1', 'LAPORAN PENJUALAN');
+        $sheet->setCellValue('A2', 'Toko: ' . $setting->company_name);
+        $sheet->setCellValue('A3', 'Periode: ' . $this->getPeriodDisplay($request));
+        $sheet->setCellValue('A4', 'Dicetak: ' . now()->format('d/m/Y H:i'));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A2:A4')->getFont()->setSize(10);
+
+        // ── Ringkasan ──────────────────────────────
+        $sheet->setCellValue('A6', '=== RINGKASAN ===');
+        $sheet->getStyle('A6')->getFont()->setBold(true);
+        $summaryData = [
+            ['Total Penjualan', $totalRevenue],
+            ['Total Profit',    $totalProfit],
+            ['Margin Profit',   $totalRevenue > 0 ? round($totalProfit / $totalRevenue * 100, 1) / 100 : 0],
+            ['Jumlah Transaksi', $countAll],
+            ['Transaksi Lunas', $countPaid],
+            ['Transaksi Sebagian', $countPartial],
+            ['Transaksi Belum Bayar', $countUnpaid],
+            ['Total Piutang', $totalUnpaid],
         ];
-
-        $callback = function () use ($sales, $setting, $request, $totalRevenue, $totalProfit, $countAll, $countPaid, $countPartial, $countUnpaid, $totalUnpaid) {
-            $f = fopen('php://output', 'w');
-
-            // BOM for Excel UTF-8 compatibility
-            fprintf($f, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            // ── Company Header ──────────────────────────
-            fputcsv($f, ['LAPORAN PENJUALAN']);
-            fputcsv($f, ['Toko', $setting->company_name]);
-            if ($setting->company_address) fputcsv($f, ['Alamat', $setting->company_address]);
-            if ($setting->company_phone)   fputcsv($f, ['Telepon', $setting->company_phone]);
-            fputcsv($f, ['Periode', $this->getPeriodDisplay($request)]);
-            fputcsv($f, ['Dicetak Pada', now()->format('d/m/Y H:i')]);
-            fputcsv($f, []);
-
-            // ── Summary Section ─────────────────────────
-            fputcsv($f, ['=== RINGKASAN ===']);
-            fputcsv($f, ['Total Penjualan', 'Rp ' . number_format($totalRevenue, 0, ',', '.')]);
-            fputcsv($f, ['Total Profit',    'Rp ' . number_format($totalProfit,  0, ',', '.')]);
-            if ($totalRevenue > 0) {
-                fputcsv($f, ['Margin Profit', number_format($totalProfit / $totalRevenue * 100, 1) . '%']);
+        foreach ($summaryData as $i => $row) {
+            $r = $i + 7;
+            $sheet->setCellValue("A{$r}", $row[0]);
+            $sheet->setCellValue("B{$r}", $row[1]);
+            $sheet->getStyle("A{$r}")->getFont()->setBold(true);
+            if (in_array($row[0], ['Total Penjualan', 'Total Profit', 'Total Piutang'])) {
+                $sheet->getStyle("B{$r}")->getNumberFormat()->setFormatCode($rpFmt);
+            } elseif ($row[0] === 'Margin Profit') {
+                $sheet->getStyle("B{$r}")->getNumberFormat()->setFormatCode('0.0%');
             }
-            fputcsv($f, ['Jumlah Transaksi',    $countAll]);
-            fputcsv($f, ['Transaksi Lunas',      $countPaid]);
-            fputcsv($f, ['Transaksi Sebagian',   $countPartial]);
-            fputcsv($f, ['Transaksi Belum Bayar',$countUnpaid]);
-            fputcsv($f, ['Total Piutang',  'Rp ' . number_format($totalUnpaid,  0, ',', '.')]);
-            fputcsv($f, []);
+        }
 
-            // ── Column Headers ──────────────────────────
-            fputcsv($f, ['=== DETAIL TRANSAKSI ===']);
-            fputcsv($f, [
-                'No',
-                'No. Invoice',
-                'Tanggal',
-                'Waktu',
-                'Customer',
-                'Tipe Pembayaran',
-                'Total (Rp)',
-                'Modal (Rp)',
-                'Profit (Rp)',
-                'Margin (%)',
-                'Status Bayar',
-                'Jatuh Tempo',
-                'Sudah Dibayar (Rp)',
-                'Sisa Hutang (Rp)',
+        // ── Column Headers ──────────────────────────
+        $hRow = 16;
+        $headers = ['No', 'No. Invoice', 'Tanggal', 'Waktu', 'Customer', 'Tipe Pembayaran', 'Total (Rp)', 'Modal (Rp)', 'Profit (Rp)', 'Margin (%)', 'Status Bayar', 'Jatuh Tempo', 'Sudah Dibayar (Rp)', 'Sisa Hutang (Rp)'];
+        foreach ($headers as $ci => $label) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($ci + 1);
+            $sheet->setCellValue("{$col}{$hRow}", $label);
+        }
+        $sheet->getStyle("A{$hRow}:N{$hRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getRowDimension($hRow)->setRowHeight(22);
+
+        // ── Data Rows ────────────────────────────────
+        $rowIdx = $hRow + 1;
+        $grandModal = 0;
+        foreach ($sales as $i => $sale) {
+            $modal  = $sale->details->sum(fn($d) => $d->quantity * ($d->product->modal_awal ?? 0));
+            $profit = $sale->details->sum(fn($d) => $d->subtotal - ($d->quantity * ($d->product->modal_awal ?? 0)));
+            $margin = $sale->total_amount > 0 ? $profit / $sale->total_amount : 0;
+            $sisa   = $sale->total_amount - $sale->amount_paid;
+            $grandModal += $modal;
+
+            $rowData = [
+                $i + 1,
+                $sale->invoice_number,
+                $sale->created_at->format('d/m/Y'),
+                $sale->created_at->format('H:i'),
+                $sale->customer?->name ?? 'Umum',
+                $sale->payment_type === 'cash' ? 'Cash' : 'Tempo',
+                $sale->total_amount,
+                $modal,
+                $profit,
+                $margin,
+                $sale->status === 'paid' ? 'Lunas' : ($sale->status === 'partial' ? 'Sebagian' : 'Belum Bayar'),
+                $sale->due_date?->format('d/m/Y') ?? '-',
+                $sale->amount_paid,
+                $sisa > 0 ? $sisa : 0,
+            ];
+
+            foreach ($rowData as $ci => $val) {
+                $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($ci + 1);
+                $sheet->setCellValue("{$col}{$rowIdx}", $val);
+            }
+
+            foreach (['G', 'H', 'I', 'M', 'N'] as $c) {
+                $sheet->getStyle("{$c}{$rowIdx}")->getNumberFormat()->setFormatCode($rpFmt);
+            }
+            $sheet->getStyle("J{$rowIdx}")->getNumberFormat()->setFormatCode('0.0%');
+
+            $bg = ($rowIdx % 2 === 0) ? 'F8FAFC' : 'FFFFFF';
+            $sheet->getStyle("A{$rowIdx}:N{$rowIdx}")->applyFromArray([
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
             ]);
+            $rowIdx++;
+        }
 
-            // ── Data Rows ────────────────────────────────
-            foreach ($sales as $i => $sale) {
-                $modal  = $sale->details->sum(fn($d) => $d->quantity * ($d->product->modal_awal ?? 0));
-                $profit = $sale->details->sum(fn($d) => $d->subtotal - ($d->quantity * ($d->product->modal_awal ?? 0)));
-                $margin = $sale->total_amount > 0 ? round($profit / $sale->total_amount * 100, 1) : 0;
-                $sisa   = $sale->total_amount - $sale->amount_paid;
+        // ── Totals Row ───────────────────────────────
+        $sheet->setCellValue("E{$rowIdx}", 'TOTAL');
+        $sheet->setCellValue("G{$rowIdx}", $totalRevenue);
+        $sheet->setCellValue("H{$rowIdx}", $grandModal);
+        $sheet->setCellValue("I{$rowIdx}", $totalProfit);
+        $sheet->setCellValue("J{$rowIdx}", $totalRevenue > 0 ? $totalProfit / $totalRevenue : 0);
+        $sheet->setCellValue("M{$rowIdx}", $sales->sum('amount_paid'));
+        $sheet->setCellValue("N{$rowIdx}", $totalUnpaid > 0 ? $totalUnpaid : 0);
+        foreach (['G', 'H', 'I', 'M', 'N'] as $c) {
+            $sheet->getStyle("{$c}{$rowIdx}")->getNumberFormat()->setFormatCode($rpFmt);
+        }
+        $sheet->getStyle("J{$rowIdx}")->getNumberFormat()->setFormatCode('0.0%');
+        $sheet->getStyle("A{$rowIdx}:N{$rowIdx}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getRowDimension($rowIdx)->setRowHeight(24);
 
-                fputcsv($f, [
-                    $i + 1,
-                    $sale->invoice_number,
-                    $sale->created_at->format('d/m/Y'),
-                    $sale->created_at->format('H:i'),
-                    $sale->customer?->name ?? 'Umum',
-                    $sale->payment_type === 'cash' ? 'Cash' : 'Tempo',
-                    $sale->total_amount,
-                    $modal,
-                    $profit,
-                    $margin . '%',
-                    $sale->status === 'paid' ? 'Lunas' : ($sale->status === 'partial' ? 'Sebagian' : 'Belum Bayar'),
-                    $sale->due_date?->format('d/m/Y') ?? '-',
-                    $sale->amount_paid,
-                    $sisa > 0 ? $sisa : 0,
-                ]);
-            }
+        // ── Column widths ─────────────────────────────
+        $colWidths = ['A'=>5,'B'=>18,'C'=>12,'D'=>8,'E'=>20,'F'=>14,'G'=>16,'H'=>16,'I'=>16,'J'=>10,'K'=>14,'L'=>14,'M'=>18,'N'=>16];
+        foreach ($colWidths as $col => $w) {
+            $sheet->getColumnDimension($col)->setWidth($w);
+        }
 
-            // ── Totals Row ───────────────────────────────
-            fputcsv($f, []);
-            fputcsv($f, [
-                '',
-                '',
-                '',
-                '',
-                'TOTAL',
-                '',
-                $totalRevenue,
-                $sales->sum(fn($s) => $s->details->sum(fn($d) => $d->quantity * ($d->product->modal_awal ?? 0))),
-                $totalProfit,
-                ($totalRevenue > 0 ? number_format($totalProfit / $totalRevenue * 100, 1) : '0') . '%',
-                '',
-                '',
-                $sales->sum('amount_paid'),
-                $totalUnpaid > 0 ? $totalUnpaid : 0,
-            ]);
+        if ($setting->invoice_footer) {
+            $sheet->setCellValue("A" . ($rowIdx + 2), $setting->invoice_footer);
+        }
 
-            fputcsv($f, []);
-            if ($setting->invoice_footer) {
-                fputcsv($f, [$setting->invoice_footer]);
-            }
-
-            fclose($f);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        $writer = new Xlsx($spreadsheet);
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'max-age=0',
+        ]);
     }
 
     public function stockExcel(Request $request)
@@ -572,89 +602,128 @@ class ExportController extends Controller
         });
 
         $label    = \Carbon\Carbon::parse($date)->isoFormat('D MMMM Y');
-        $filename = "stock-harian-{$date}.csv";
+        $filename = "stock-harian-{$date}.xlsx";
 
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        $total_terjual    = $products->sum('terjual');
+        $tidak_terjual    = $products->where('terjual', 0)->count();
+        $total_pendapatan = $products->sum('pendapatan');
+        $total_keuntungan = $products->sum('keuntungan');
+        $low_stock        = $products->filter(fn($p) => $p->kuantitas <= $p->stock_minimum)->count();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Stock Harian');
+
+        $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+
+        // ── Header ──────────────────────────────────
+        $sheet->setCellValue('A1', 'LAPORAN STOCK HARIAN');
+        $sheet->setCellValue('A2', 'Toko: ' . $setting->company_name);
+        $sheet->setCellValue('A3', 'Tanggal: ' . $label);
+        $sheet->setCellValue('A4', 'Dicetak: ' . now()->format('d/m/Y H:i'));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+        // ── Ringkasan ──────────────────────────────
+        $sheet->setCellValue('A6', '=== RINGKASAN ===');
+        $sheet->getStyle('A6')->getFont()->setBold(true);
+        $summaryRows = [
+            ['Total Produk', $products->count()],
+            ['Total Terjual (unit)', $total_terjual],
+            ['Tidak Terjual (jenis)', $tidak_terjual],
+            ['Total Pendapatan', $total_pendapatan],
+            ['Total Keuntungan', $total_keuntungan],
+            ['Stok Menipis', $low_stock],
         ];
-
-        $callback = function () use ($products, $setting, $label, $date) {
-            $f = fopen('php://output', 'w');
-            fprintf($f, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-            fputcsv($f, ['LAPORAN STOCK HARIAN']);
-            fputcsv($f, ['Toko',      $setting->company_name]);
-            fputcsv($f, ['Tanggal',   $label]);
-            fputcsv($f, ['Dicetak',   now()->format('d/m/Y H:i')]);
-            fputcsv($f, []);
-
-            $total_terjual    = $products->sum('terjual');
-            $tidak_terjual    = $products->where('terjual', 0)->count();
-            $total_pendapatan = $products->sum('pendapatan');
-            $total_keuntungan = $products->sum('keuntungan');
-            $low_stock        = $products->filter(fn($p) => $p->kuantitas <= $p->stock_minimum)->count();
-
-            fputcsv($f, ['=== RINGKASAN ===']);
-            fputcsv($f, ['Total Produk',          $products->count()]);
-            fputcsv($f, ['Total Terjual (unit)',   $total_terjual]);
-            fputcsv($f, ['Tidak Terjual (jenis)',  $tidak_terjual]);
-            fputcsv($f, ['Total Pendapatan', 'Rp ' . number_format($total_pendapatan, 0, ',', '.')]);
-            fputcsv($f, ['Total Keuntungan', 'Rp ' . number_format($total_keuntungan, 0, ',', '.')]);
-            fputcsv($f, ['Stok Menipis',           $low_stock]);
-            fputcsv($f, []);
-
-            fputcsv($f, ['=== DETAIL STOCK ===']);
-            fputcsv($f, [
-                'No', 'Kode Barang', 'Nama Produk', 'Jenis',
-                'Stock Awal', 'Terjual', 'Sisa Stock', 'Stock Minimum',
-                'Harga Modal (Rp)', 'Harga Grosir (Rp)', 'Harga Ecer (Rp)',
-                'Pendapatan (Rp)', 'Keuntungan (Rp)', 'Status',
-            ]);
-
-            foreach ($products as $i => $p) {
-                $low    = $p->kuantitas <= $p->stock_minimum;
-                $sold   = $p->terjual > 0;
-                $status = match (true) {
-                    $sold && $low  => 'Terjual · Low Stock',
-                    $sold          => 'Terjual',
-                    $low           => 'Stok Menipis',
-                    default        => 'Tidak Terjual',
-                };
-                fputcsv($f, [
-                    $i + 1,
-                    $p->kode_barang,
-                    $p->nama_barang,
-                    $p->jenis_barang,
-                    $p->stock_awal,
-                    $p->terjual ?: '-',
-                    $p->kuantitas,
-                    $p->stock_minimum,
-                    $p->modal_awal,
-                    $p->harga_grosir,
-                    $p->harga_ecer,
-                    $p->pendapatan ?: '-',
-                    $p->terjual > 0 ? $p->keuntungan : '-',
-                    $status,
-                ]);
+        foreach ($summaryRows as $i => $row) {
+            $r = $i + 7;
+            $sheet->setCellValue("A{$r}", $row[0]);
+            $sheet->setCellValue("B{$r}", $row[1]);
+            $sheet->getStyle("A{$r}")->getFont()->setBold(true);
+            if (in_array($row[0], ['Total Pendapatan', 'Total Keuntungan'])) {
+                $sheet->getStyle("B{$r}")->getNumberFormat()->setFormatCode($rpFmt);
             }
+        }
 
-            fputcsv($f, []);
-            fputcsv($f, [
-                '', '', '', 'TOTAL',
-                $products->sum('stock_awal'),
-                $total_terjual,
-                $products->sum('kuantitas'),
-                '', '', '', '',
-                $total_pendapatan,
-                $total_keuntungan,
-                '',
+        // ── Column Headers ──────────────────────────
+        $hRow = 14;
+        $colHeaders = ['No', 'Kode Barang', 'Nama Produk', 'Jenis', 'Stock Awal', 'Terjual', 'Sisa Stock', 'Stock Min', 'Harga Modal', 'Harga Grosir', 'Harga Ecer', 'Pendapatan', 'Keuntungan', 'Status'];
+        foreach ($colHeaders as $ci => $label2) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($ci + 1);
+            $sheet->setCellValue("{$col}{$hRow}", $label2);
+        }
+        $sheet->getStyle("A{$hRow}:N{$hRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E36C09']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'C0C0C0']]],
+        ]);
+        $sheet->getRowDimension($hRow)->setRowHeight(22);
+
+        // ── Data Rows ────────────────────────────────
+        $rowIdx = $hRow + 1;
+        foreach ($products as $i => $p) {
+            $low    = $p->kuantitas <= $p->stock_minimum;
+            $sold   = $p->terjual > 0;
+            $status = match (true) {
+                $sold && $low => 'Terjual · Low Stock',
+                $sold         => 'Terjual',
+                $low          => 'Stok Menipis',
+                default       => 'Tidak Terjual',
+            };
+
+            $rowData = [
+                $i + 1, $p->kode_barang, $p->nama_barang, $p->jenis_barang,
+                $p->stock_awal, $p->terjual ?: 0, $p->kuantitas, $p->stock_minimum,
+                (float) $p->modal_awal, (float) $p->harga_grosir, (float) $p->harga_ecer,
+                $p->pendapatan, $p->terjual > 0 ? $p->keuntungan : 0, $status,
+            ];
+            foreach ($rowData as $ci => $val) {
+                $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($ci + 1);
+                $sheet->setCellValue("{$col}{$rowIdx}", $val);
+            }
+            foreach (['I', 'J', 'K', 'L', 'M'] as $c) {
+                $sheet->getStyle("{$c}{$rowIdx}")->getNumberFormat()->setFormatCode($rpFmt);
+            }
+            $bg = $low ? 'FFF1F2' : (($rowIdx % 2 === 0) ? 'F8FAFC' : 'FFFFFF');
+            $sheet->getStyle("A{$rowIdx}:N{$rowIdx}")->applyFromArray([
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
             ]);
+            $rowIdx++;
+        }
 
-            fclose($f);
-        };
+        // ── Totals Row ───────────────────────────────
+        $sheet->setCellValue("D{$rowIdx}", 'TOTAL');
+        $sheet->setCellValue("E{$rowIdx}", $products->sum('stock_awal'));
+        $sheet->setCellValue("F{$rowIdx}", $total_terjual);
+        $sheet->setCellValue("G{$rowIdx}", $products->sum('kuantitas'));
+        $sheet->setCellValue("L{$rowIdx}", $total_pendapatan);
+        $sheet->setCellValue("M{$rowIdx}", $total_keuntungan);
+        foreach (['L', 'M'] as $c) {
+            $sheet->getStyle("{$c}{$rowIdx}")->getNumberFormat()->setFormatCode($rpFmt);
+        }
+        $sheet->getStyle("A{$rowIdx}:N{$rowIdx}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getRowDimension($rowIdx)->setRowHeight(24);
 
-        return response()->stream($callback, 200, $headers);
+        // ── Column widths ─────────────────────────────
+        $colWidths = ['A'=>5,'B'=>14,'C'=>28,'D'=>12,'E'=>10,'F'=>9,'G'=>10,'H'=>10,'I'=>16,'J'=>16,'K'=>16,'L'=>16,'M'=>16,'N'=>18];
+        foreach ($colWidths as $col => $w) {
+            $sheet->getColumnDimension($col)->setWidth($w);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'max-age=0',
+        ]);
     }
 
     private function getSales(Request $request)

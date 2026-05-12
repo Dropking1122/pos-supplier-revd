@@ -37,6 +37,10 @@ class UserIndex extends Component
 
     public function openCreate()
     {
+        if (!auth()->user()->is_admin) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menambah user.');
+            return;
+        }
         $this->reset(['editId', 'name', 'email', 'password', 'password_confirmation']);
         $this->resetErrorBag();
         $this->showModal = true;
@@ -56,6 +60,10 @@ class UserIndex extends Component
 
     public function save()
     {
+        if (!auth()->user()->is_admin) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat mengelola user.');
+            return;
+        }
         $this->validate();
 
         if ($this->editId) {
@@ -81,6 +89,10 @@ class UserIndex extends Component
 
     public function confirmDelete($id)
     {
+        if (!auth()->user()->is_admin) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menghapus user.');
+            return;
+        }
         if ($id === auth()->id()) {
             $this->dispatch('toast', type: 'error', message: 'Tidak bisa menghapus akun yang sedang digunakan.');
             return;
@@ -93,6 +105,11 @@ class UserIndex extends Component
 
     public function deleteUser()
     {
+        if (!auth()->user()->is_admin) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menghapus user.');
+            $this->showDeleteModal = false;
+            return;
+        }
         if ($this->deleteId === auth()->id()) {
             $this->dispatch('toast', type: 'error', message: 'Tidak bisa menghapus akun yang sedang digunakan.');
             $this->showDeleteModal = false;

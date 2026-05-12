@@ -86,9 +86,11 @@
                 @endif
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Bayar (Rp) *</label>
-                    <input wire:model="payAmount" type="number" min="1" step="1000"
-                           max="{{ $activeDebt ? $activeDebt->sisa_hutang : '' }}"
+                    <input wire:model="payAmount" type="number" min="1" step="1"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    @if($activeDebt && (float)$payAmount > $activeDebt->sisa_hutang)
+                    <p class="text-xs text-amber-600 mt-1">Nominal melebihi sisa hutang. Akan dicatat sebagai pelunasan penuh (Rp {{ number_format($activeDebt->sisa_hutang,0,',','.') }}).</p>
+                    @endif
                     @error('payAmount') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                 </div>
                 <div>
