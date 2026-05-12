@@ -2,6 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\BackupController;
 
 Route::get('/', fn() => redirect()->route('dashboard'));
 
@@ -22,6 +23,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/stock-export', [ExportController::class, 'stockExcel'])->name('reports.stock-export');
     Route::get('/users', fn() => view('users.index'))->name('users.index');
     Route::get('/settings', fn() => view('settings.index'))->name('settings.index');
+    Route::get('/backup', fn() => view('backup.index'))->name('backup.index');
+    Route::get('/backup/create', [BackupController::class, 'create'])->name('backup.create');
+    Route::get('/backup/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
+    Route::post('/backup/import', [BackupController::class, 'import'])->name('backup.import');
+    Route::delete('/backup/delete/{filename}', [BackupController::class, 'delete'])->name('backup.delete');
     Route::get('/profile', fn() => view('profile'))->name('profile.edit');
 });
 
