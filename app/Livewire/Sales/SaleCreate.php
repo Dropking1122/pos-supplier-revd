@@ -26,11 +26,17 @@ class SaleCreate extends Component {
             }
         }
         $this->items[] = [
-            'product_id'=>$product->id,'nama_barang'=>$product->nama_barang,
-            'kode_barang'=>$product->kode_barang,'price_type'=>'ecer',
-            'unit_price'=>$product->harga_ecer,'quantity'=>1,
-            'harga_ecer'=>$product->harga_ecer,'harga_grosir'=>$product->harga_grosir,
-            'stok'=>$product->kuantitas,'subtotal'=>$product->harga_ecer,
+            'product_id'   => $product->id,
+            'nama_barang'  => $product->nama_barang,
+            'kode_barang'  => $product->kode_barang,
+            'price_type'   => 'ecer',
+            'unit_price'   => $product->harga_ecer,
+            'quantity'     => 1,
+            'harga_ecer'   => $product->harga_ecer,
+            'harga_grosir' => $product->harga_grosir,
+            'modal_awal'   => $product->modal_awal,
+            'stok'         => $product->kuantitas,
+            'subtotal'     => $product->harga_ecer,
         ];
         $this->productSearch = ''; $this->showProductSearch = false;
     }
@@ -51,23 +57,38 @@ class SaleCreate extends Component {
         $amountPaid = $this->payment_type === 'cash' ? $total : 0;
         $status = $this->payment_type === 'cash' ? 'paid' : 'unpaid';
         $sale = Sale::create([
-            'invoice_number'=>$invoiceNumber,'customer_id'=>$this->customer_id ?: null,
-            'total_amount'=>$total,'amount_paid'=>$amountPaid,
-            'payment_type'=>$this->payment_type,'status'=>$status,
-            'due_date'=>$this->payment_type === 'tempo' ? $this->due_date : null,'notes'=>$this->notes,
+            'invoice_number' => $invoiceNumber,
+            'customer_id'    => $this->customer_id ?: null,
+            'total_amount'   => $total,
+            'amount_paid'    => $amountPaid,
+            'payment_type'   => $this->payment_type,
+            'status'         => $status,
+            'due_date'       => $this->payment_type === 'tempo' ? $this->due_date : null,
+            'notes'          => $this->notes,
         ]);
         foreach ($this->items as $item) {
+            // Ambil stok saat ini SEBELUM dikurangi — snapshot untuk invoice akurat
+            $product = Product::findOrFail($item['product_id']);
             SaleDetail::create([
-                'sale_id'=>$sale->id,'product_id'=>$item['product_id'],'price_type'=>$item['price_type'],
-                'unit_price'=>$item['unit_price'],'quantity'=>$item['quantity'],'subtotal'=>$item['subtotal'],
+                'sale_id'      => $sale->id,
+                'product_id'   => $item['product_id'],
+                'price_type'   => $item['price_type'],
+                'unit_price'   => $item['unit_price'],
+                'quantity'     => $item['quantity'],
+                'stock_before' => $product->kuantitas,
+                'subtotal'     => $item['subtotal'],
             ]);
-            Product::findOrFail($item['product_id'])->decrement('kuantitas',$item['quantity']);
+            $product->decrement('kuantitas', $item['quantity']);
         }
         if ($this->payment_type === 'tempo' && $this->customer_id) {
             Debt::create([
-                'customer_id'=>$this->customer_id,'sale_id'=>$sale->id,
-                'total_hutang'=>$total,'total_bayar'=>0,'sisa_hutang'=>$total,
-                'jatuh_tempo'=>$this->due_date,'status'=>'belum_lunas',
+                'customer_id' => $this->customer_id,
+                'sale_id'     => $sale->id,
+                'total_hutang'=> $total,
+                'total_bayar' => 0,
+                'sisa_hutang' => $total,
+                'jatuh_tempo' => $this->due_date,
+                'status'      => 'belum_lunas',
             ]);
         }
         session()->flash('message','Transaksi berhasil disimpan! Invoice: '.$invoiceNumber);
