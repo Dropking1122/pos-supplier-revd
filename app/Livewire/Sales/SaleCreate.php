@@ -46,7 +46,13 @@ class SaleCreate extends Component {
         $this->recalcItem($index);
     }
     public function recalcItem($index) {
-        $this->items[$index]['subtotal'] = $this->items[$index]['unit_price'] * $this->items[$index]['quantity'];
+        $stok = $this->items[$index]['stok'] ?? 0;
+        $qty  = max(1, (int) $this->items[$index]['quantity']);
+        if ($qty > $stok) {
+            $qty = $stok;
+            $this->items[$index]['quantity'] = $qty;
+        }
+        $this->items[$index]['subtotal'] = $this->items[$index]['unit_price'] * $qty;
     }
     public function removeItem($index) { array_splice($this->items, $index, 1); }
     public function getTotal() { return collect($this->items)->sum('subtotal'); }

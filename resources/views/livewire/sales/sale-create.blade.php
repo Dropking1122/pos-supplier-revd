@@ -55,6 +55,9 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <input wire:model="items.{{ $i }}.quantity" wire:change="recalcItem({{ $i }})" type="number" min="1" max="{{ $item['stok'] }}" class="w-16 border border-gray-300 rounded px-2 py-1 text-xs text-center">
+                                    <p class="text-[10px] mt-0.5 {{ $item['quantity'] >= $item['stok'] ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
+                                        Sisa: {{ $item['stok'] - $item['quantity'] }} / {{ $item['stok'] }}
+                                    </p>
                                 </td>
                                 <td class="px-4 py-3 text-right font-semibold">Rp {{ number_format($item['subtotal'],0,',','.') }}</td>
                                 <td class="px-4 py-3 text-center">

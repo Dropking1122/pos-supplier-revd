@@ -15,6 +15,9 @@ class ProductList extends Component {
     public $sortField = 'nama_barang', $sortDirection = 'asc';
     public $filterLowStock = false;
 
+    public $showRestockModal = false;
+    public $restockId = null, $restockNama = '', $restockJumlah = 0;
+
     protected $queryString = ['filterLowStock' => ['except' => false]];
 
     protected $rules = [
@@ -75,6 +78,21 @@ class ProductList extends Component {
     public function delete($id) {
         Product::findOrFail($id)->delete();
         session()->flash('message','Produk berhasil dihapus!');
+    }
+    public function openRestock($id) {
+        $p = Product::findOrFail($id);
+        $this->restockId    = $id;
+        $this->restockNama  = $p->nama_barang;
+        $this->restockJumlah= 0;
+        $this->showRestockModal = true;
+    }
+    public function restock() {
+        $this->validate(['restockJumlah' => 'required|integer|min:1'], [
+            'restockJumlah.min' => 'Jumlah restock minimal 1.',
+        ]);
+        Product::findOrFail($this->restockId)->increment('kuantitas', $this->restockJumlah);
+        session()->flash('message', 'Restock berhasil! Stok ditambah '.$this->restockJumlah.' unit.');
+        $this->showRestockModal = false;
     }
     public function render() {
         $sortableAggregates = ['total_terjual', 'total_pendapatan'];

@@ -160,6 +160,9 @@
                         </td>
                         <td class="px-4 py-3 text-right text-gray-700 whitespace-nowrap tabular-nums">Rp {{ number_format($product->harga_ecer,0,',','.') }}</td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">
+                            <button wire:click="openRestock({{ $product->id }})" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-green-600 hover:bg-green-50 transition-colors mr-1" title="Restock">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            </button>
                             <button wire:click="openEdit({{ $product->id }})" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors mr-1" title="Edit">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
@@ -202,6 +205,9 @@
                     <p class="text-[11px] text-gray-400 font-mono mt-0.5">{{ $product->kode_barang }}{{ $product->jenis_barang ? ' · '.$product->jenis_barang : '' }}</p>
                 </div>
                 <div class="flex gap-1.5 shrink-0">
+                    <button wire:click="openRestock({{ $product->id }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-green-600 bg-green-50 hover:bg-green-100 transition-colors" title="Restock">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </button>
                     <button wire:click="openEdit({{ $product->id }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </button>
@@ -238,6 +244,34 @@
         @endforelse
         <div class="bg-white rounded-xl shadow-sm px-4 py-3">{{ $products->links() }}</div>
     </div>
+
+    <!-- Restock Modal -->
+    @if($showRestockModal)
+    <div class="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        <div class="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-sm">
+            <div class="flex justify-between items-center px-5 py-4 border-b">
+                <div>
+                    <h3 class="text-base font-semibold text-gray-800">Restock Barang</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ $restockNama }}</p>
+                </div>
+                <button wire:click="$set('showRestockModal',false)" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form wire:submit="restock" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Tambah Stok <span class="text-red-500">*</span></label>
+                    <input wire:model="restockJumlah" type="number" min="1" autofocus class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Masukkan jumlah...">
+                    @error('restockJumlah') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                </div>
+                <div class="flex gap-3 pt-1">
+                    <button type="button" wire:click="$set('showRestockModal',false)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">Simpan Restock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     <!-- Modal -->
     @if($showModal)
