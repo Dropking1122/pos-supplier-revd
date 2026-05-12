@@ -11,7 +11,15 @@ class SettingIndex extends Component
     public $company_name = '', $company_address = '', $company_phone = '', $invoice_footer = '', $petugas = '';
     public $logoBase64 = null;
     public $logoFileName = null;
-    public $showResetModal = false, $resetConfirmText = '', $resetKeepProducts = true;
+
+    public $showResetModal = false;
+    public $resetConfirmText = '';
+    public $resetDeleteSales     = true;
+    public $resetDeleteDebts     = true;
+    public $resetDeleteCustomers = true;
+    public $resetDeleteProducts  = false;
+    public $resetDeleteUsers     = false;
+    public $resetDeleteSettings  = false;
 
     protected function rules()
     {
@@ -60,7 +68,6 @@ class SettingIndex extends Component
         ];
 
         if ($this->logoBase64) {
-            // Parse the base64 data URL: data:image/png;base64,XXXX
             if (preg_match('/^data:(image\/(\w+));base64,(.+)$/', $this->logoBase64, $matches)) {
                 $mime    = $matches[1];
                 $ext     = match($mime) {
@@ -73,18 +80,13 @@ class SettingIndex extends Component
                 $decoded = base64_decode($matches[3]);
 
                 if ($decoded !== false && strlen($decoded) > 0) {
-                    // Delete old logo
                     if ($s->company_logo) {
                         $oldPath = public_path($s->company_logo);
-                        if (file_exists($oldPath)) {
-                            @unlink($oldPath);
-                        }
+                        if (file_exists($oldPath)) @unlink($oldPath);
                     }
 
                     $dir = public_path('logos');
-                    if (!is_dir($dir)) {
-                        mkdir($dir, 0755, true);
-                    }
+                    if (!is_dir($dir)) mkdir($dir, 0755, true);
 
                     $filename = Str::random(40) . '.' . $ext;
                     file_put_contents($dir . '/' . $filename, $decoded);
@@ -105,9 +107,7 @@ class SettingIndex extends Component
         $s = Setting::getSettings();
         if ($s->company_logo) {
             $path = public_path($s->company_logo);
-            if (file_exists($path)) {
-                @unlink($path);
-            }
+            if (file_exists($path)) @unlink($path);
             $s->update(['company_logo' => null]);
         }
         $this->logoBase64   = null;
@@ -122,24 +122,53 @@ class SettingIndex extends Component
             return;
         }
 
+        if (!$this->resetDeleteSales && !$this->resetDeleteDebts && !$this->resetDeleteCustomers
+            && !$this->resetDeleteProducts && !$this->resetDeleteUsers && !$this->resetDeleteSettings) {
+            $this->addError('resetConfirmText', 'Pilih minimal satu data yang ingin direset.');
+            return;
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        DB::table('debt_payments')->truncate();
-        DB::table('debts')->truncate();
-        DB::table('sale_details')->truncate();
-        DB::table('sales')->truncate();
-        DB::table('customers')->truncate();
-        if (!$this->resetKeepProducts) {
+
+        if ($this->resetDeleteSales) {
+            DB::table('sale_details')->truncate();
+            DB::table('sales')->truncate();
+        }
+        if ($this->resetDeleteDebts) {
+            DB::table('debt_payments')->truncate();
+            DB::table('debts')->truncate();
+        }
+        if ($this->resetDeleteCustomers) {
+            DB::table('customers')->truncate();
+        }
+        if ($this->resetDeleteProducts) {
             DB::table('products')->truncate();
         }
+        if ($this->resetDeleteUsers) {
+            DB::table('users')->where('id', '!=', auth()->id())->delete();
+        }
+        if ($this->resetDeleteSettings) {
+            Setting::first()?->update([
+                'company_name'    => 'Toko Saya',
+                'company_address' => null,
+                'company_phone'   => null,
+                'company_logo'    => null,
+                'invoice_footer'  => null,
+                'petugas'         => null,
+            ]);
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        $this->showResetModal  = false;
+        $this->showResetModal   = false;
         $this->resetConfirmText = '';
+        $this->resetDeleteSales = $this->resetDeleteDebts = $this->resetDeleteCustomers = true;
+        $this->resetDeleteProducts = $this->resetDeleteUsers = $this->resetDeleteSettings = false;
 
         $this->dispatch('toast',
             type: 'success',
             title: 'Database Direset',
-            message: 'Semua data transaksi & customer telah dihapus. Akun & pengaturan tetap aman.',
+            message: 'Data yang dipilih telah dihapus.',
             duration: 6000
         );
     }

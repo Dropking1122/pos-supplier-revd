@@ -65,7 +65,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-center">
-                                    <select wire:model="items.{{ $i }}.price_type" wire:change="updatePriceType({{ $i }})" class="border border-gray-300 rounded px-2 py-1 text-xs">
+                                    <select wire:model="items.{{ $i }}.price_type" wire:change="updatePriceType({{ $i }})" class="border border-gray-300 rounded pl-2 pr-7 py-1 text-xs appearance-none bg-white" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 4px center;background-size:14px;">
                                         <option value="ecer">Ecer</option>
                                         <option value="grosir">Grosir</option>
                                     </select>

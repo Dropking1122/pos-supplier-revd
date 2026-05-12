@@ -197,8 +197,8 @@
 
     {{-- Reset Modal --}}
     @if($showResetModal)
-    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-4">
             <div class="p-6">
                 <!-- Header -->
                 <div class="flex items-center gap-3 mb-5">
@@ -207,44 +207,86 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-gray-800">Reset Database</h3>
-                        <p class="text-xs text-gray-500">Bersihkan semua data untuk testing</p>
+                        <p class="text-xs text-gray-500">Pilih data yang ingin dihapus permanen</p>
                     </div>
                 </div>
 
-                <!-- Apa yang terhapus -->
-                <div class="rounded-xl border border-red-200 bg-red-50 p-4 mb-4">
-                    <p class="text-xs font-bold text-red-700 uppercase tracking-wide mb-2">Data yang akan dihapus permanen:</p>
-                    <ul class="space-y-1">
-                        @foreach(['Semua transaksi penjualan & detail item','Semua data hutang & riwayat cicilan','Semua data customer'] as $item)
-                        <li class="flex items-center gap-2 text-xs text-red-700">
-                            <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                            {{ $item }}
-                        </li>
-                        @endforeach
-                    </ul>
+                <!-- Pilihan data yang akan direset -->
+                <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Pilih data yang ingin direset:</p>
+                <div class="space-y-2 mb-5">
+
+                    {{-- Transaksi --}}
+                    <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+                        <input wire:model="resetDeleteSales" type="checkbox" class="w-4 h-4 text-red-600 rounded mt-0.5 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-700">Transaksi Penjualan & Detail Item</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Semua riwayat penjualan akan dihapus</p>
+                        </div>
+                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium shrink-0">Umum</span>
+                    </label>
+
+                    {{-- Hutang --}}
+                    <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+                        <input wire:model="resetDeleteDebts" type="checkbox" class="w-4 h-4 text-red-600 rounded mt-0.5 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-700">Hutang & Cicilan Customer</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Semua data hutang dan riwayat pembayaran cicilan</p>
+                        </div>
+                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium shrink-0">Umum</span>
+                    </label>
+
+                    {{-- Customer --}}
+                    <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+                        <input wire:model="resetDeleteCustomers" type="checkbox" class="w-4 h-4 text-red-600 rounded mt-0.5 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-700">Data Customer</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Semua nama, kontak, dan alamat customer</p>
+                        </div>
+                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium shrink-0">Umum</span>
+                    </label>
+
+                    {{-- Produk --}}
+                    <label class="flex items-start gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50 cursor-pointer hover:bg-amber-100 transition-colors">
+                        <input wire:model="resetDeleteProducts" type="checkbox" class="w-4 h-4 text-amber-600 rounded mt-0.5 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-amber-800">Data Produk & Stok</p>
+                            <p class="text-xs text-amber-600 mt-0.5">Semua produk, harga, modal, dan stok akan terhapus</p>
+                        </div>
+                        <span class="text-xs bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full font-medium shrink-0">⚠ Penting</span>
+                    </label>
+
+                    {{-- Users --}}
+                    <label class="flex items-start gap-3 p-3 rounded-lg border border-red-300 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors">
+                        <input wire:model="resetDeleteUsers" type="checkbox" class="w-4 h-4 text-red-600 rounded mt-0.5 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-red-800">Akun User Lain</p>
+                            <p class="text-xs text-red-600 mt-0.5">Hapus semua user kecuali akun Anda yang sedang login saat ini</p>
+                        </div>
+                        <span class="text-xs bg-red-200 text-red-700 px-2 py-0.5 rounded-full font-medium shrink-0">🚨 Bahaya</span>
+                    </label>
+
+                    {{-- Settings --}}
+                    <label class="flex items-start gap-3 p-3 rounded-lg border border-red-300 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors">
+                        <input wire:model="resetDeleteSettings" type="checkbox" class="w-4 h-4 text-red-600 rounded mt-0.5 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-red-800">Pengaturan Toko</p>
+                            <p class="text-xs text-red-600 mt-0.5">Nama toko, logo, alamat, footer invoice akan dikembalikan ke default</p>
+                        </div>
+                        <span class="text-xs bg-red-200 text-red-700 px-2 py-0.5 rounded-full font-medium shrink-0">🚨 Bahaya</span>
+                    </label>
                 </div>
 
-                <!-- Apa yang dipertahankan -->
-                <div class="rounded-xl border border-green-200 bg-green-50 p-4 mb-4">
-                    <p class="text-xs font-bold text-green-700 uppercase tracking-wide mb-2">Data yang AMAN (tidak terhapus):</p>
-                    <ul class="space-y-1">
-                        @foreach(['Akun user & password login','Pengaturan toko (nama, logo, alamat, dll)'] as $item)
-                        <li class="flex items-center gap-2 text-xs text-green-700">
-                            <svg class="w-3.5 h-3.5 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            {{ $item }}
-                        </li>
-                        @endforeach
-                    </ul>
-                </div>
-
-                <!-- Opsi produk -->
-                <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors mb-4">
-                    <input wire:model="resetKeepProducts" type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
-                    <div>
-                        <p class="text-sm font-medium text-gray-700">Pertahankan data produk</p>
-                        <p class="text-xs text-gray-400">Stok & harga produk tidak ikut dihapus</p>
+                <!-- Peringatan jika memilih data bahaya -->
+                @if($resetDeleteUsers || $resetDeleteSettings)
+                <div class="rounded-xl border border-red-400 bg-red-100 px-4 py-3 mb-4 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                    <div class="text-xs text-red-800">
+                        <p class="font-bold mb-0.5">Peringatan Data Kritis!</p>
+                        @if($resetDeleteUsers)<p>• Akun user yang dihapus tidak bisa dipulihkan. Pastikan Anda masih bisa login sebagai admin.</p>@endif
+                        @if($resetDeleteSettings)<p>• Pengaturan toko (nama, logo, dll) akan kembali ke default dan harus diisi ulang.</p>@endif
                     </div>
-                </label>
+                </div>
+                @endif
 
                 <!-- Konfirmasi ketik RESET -->
                 <div class="mb-5">

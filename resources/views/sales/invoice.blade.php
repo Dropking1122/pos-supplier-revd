@@ -33,11 +33,11 @@ body { font-family: 'Arial', sans-serif; font-size: 12px; color: #1e293b; backgr
 .section-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #64748b; margin-bottom: 8px; }
 
 /* ── Table ── */
-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #cbd5e1; }
 thead tr { background: #4f46e5; }
-th { color: #fff; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+th { color: #fff; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; border: 1px solid #4338ca; }
 th.r { text-align: right; }
-td { padding: 7px 10px; font-size: 11.5px; color: #334155; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+td { padding: 7px 10px; font-size: 11.5px; color: #334155; border: 1px solid #e2e8f0; vertical-align: middle; }
 td.r { text-align: right; }
 tbody tr:nth-child(even) td { background: #f8fafc; }
 tbody tr:hover td { background: #eff6ff; }

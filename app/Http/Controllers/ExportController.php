@@ -370,6 +370,40 @@ class ExportController extends Controller
         ]);
     }
 
+    public function customerPdf(Request $request)
+    {
+        $customerId = $request->customer_id;
+        if (!$customerId) abort(400, 'customer_id diperlukan.');
+
+        $customer = \App\Models\Customer::findOrFail($customerId);
+        $sales    = Sale::with(['details.product'])
+            ->where('customer_id', $customerId)
+            ->latest()
+            ->get();
+        $setting  = Setting::getSettings();
+
+        $grandTotal  = 0;
+        $grandModal  = 0;
+        $grandProfit = 0;
+
+        foreach ($sales as $sale) {
+            foreach ($sale->details as $detail) {
+                $qty       = (int) $detail->quantity;
+                $modal     = (float) ($detail->product->modal_awal ?? 0);
+                $jual      = (float) $detail->subtotal;
+                $grandModal  += $modal * $qty;
+                $grandTotal  += $jual;
+                $grandProfit += $jual - ($modal * $qty);
+            }
+        }
+
+        $pdf = Pdf::loadView('exports.customer-pdf', compact('customer', 'sales', 'setting', 'grandTotal', 'grandModal', 'grandProfit'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'rekap-' . \Illuminate\Support\Str::slug($customer->name) . '-' . now()->format('Ymd') . '.pdf';
+        return $pdf->download($filename);
+    }
+
     public function pdf(Request $request)
     {
         $sales        = $this->getSales($request);
