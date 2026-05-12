@@ -66,6 +66,16 @@ class SaleCreate extends Component {
         $this->items[$index]['quantity'] = max(1, $qty);
         $this->items[$index]['subtotal']  = $this->items[$index]['unit_price'] * $this->items[$index]['quantity'];
     }
+    public function updatedItems($value, $key) {
+        $parts = explode('.', $key, 2);
+        if (count($parts) < 2) return;
+        [$index, $field] = $parts;
+        if ($field === 'quantity') {
+            $this->recalcItem((int)$index);
+        } elseif ($field === 'sisa_input') {
+            $this->updateSisa((int)$index);
+        }
+    }
     public function removeItem($index) { array_splice($this->items, $index, 1); }
     public function getTotal() { return collect($this->items)->sum('subtotal'); }
     public function getLossItems() {

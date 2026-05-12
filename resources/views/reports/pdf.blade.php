@@ -34,12 +34,12 @@ body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; color: #1f2
 
 /* ── Table ───────────────────────────────────── */
 .section-title { font-size: 11px; font-weight: bold; color: #374151; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; border-collapse: collapse; border: 1px solid #d1d5db; }
 thead tr { background: #4f46e5; }
-th { color: white; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 9px; text-align: left; }
+th { color: white; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; padding: 8px 9px; text-align: left; border: 1px solid #4338ca; }
 th.r { text-align: right; }
 th.c { text-align: center; }
-td { padding: 7px 9px; font-size: 10px; border-bottom: 1px solid #f3f4f6; color: #374151; }
+td { padding: 7px 9px; font-size: 10px; border: 1px solid #e5e7eb; color: #374151; }
 td.r { text-align: right; }
 td.c { text-align: center; }
 .odd  { background: #ffffff; }

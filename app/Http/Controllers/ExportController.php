@@ -34,19 +34,21 @@ class ExportController extends Controller
             (new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB('1e293b')
         );
 
-        // ── Baris 7: Header kolom (orange seperti gambar) ─────────────────
+        // ── Baris 7: Header kolom ─────────────────────────────────────────
         $headerRow = 7;
         $headers   = [
-            'A' => 'NAMA BARANG',
-            'B' => 'HARGA BELI',
-            'C' => 'HARGA JUAL',
-            'D' => 'STOK AWAL',
-            'E' => 'SISA STOK',
-            'F' => 'STOK TERJUAL',
-            'G' => 'JUMLAH TOTAL MODAL',
-            'H' => 'JUMLAH TOTAL JUAL',
-            'I' => 'KEUNTUNGAN',
-            'J' => 'TOTAL PENJUALAN',
+            'A' => 'NO',
+            'B' => 'NAMA BARANG',
+            'C' => 'KODE BARANG',
+            'D' => 'TIPE',
+            'E' => 'HARGA BELI',
+            'F' => 'HARGA JUAL',
+            'G' => 'STOK AWAL',
+            'H' => 'SISA STOK',
+            'I' => 'STOK TERJUAL',
+            'J' => 'JUMLAH TOTAL MODAL',
+            'K' => 'JUMLAH TOTAL JUAL',
+            'L' => 'KEUNTUNGAN',
         ];
 
         foreach ($headers as $col => $label) {
@@ -54,7 +56,7 @@ class ExportController extends Controller
         }
 
         // Style header: orange background, white bold text, border
-        $headerRange = "A{$headerRow}:J{$headerRow}";
+        $headerRange = "A{$headerRow}:L{$headerRow}";
         $sheet->getStyle($headerRange)->applyFromArray([
             'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E36C09']],
@@ -87,50 +89,52 @@ class ExportController extends Controller
             $totalJual       += $jumlahJual;
             $totalKeuntungan += $keuntungan;
 
-            $sheet->setCellValue("A{$rowIdx}", $product->nama_barang . "\n(" . $product->kode_barang . ' · ' . ucfirst($detail->price_type) . ')');
-            $sheet->setCellValue("B{$rowIdx}", $hargaBeli);
-            $sheet->setCellValue("C{$rowIdx}", $hargaJual);
-            $sheet->setCellValue("D{$rowIdx}", $stockAwal);
-            $sheet->setCellValue("E{$rowIdx}", $stockSisa);
-            $sheet->setCellValue("F{$rowIdx}", $qty);
-            $sheet->setCellValue("G{$rowIdx}", $jumlahModal);
-            $sheet->setCellValue("H{$rowIdx}", $jumlahJual);
-            $sheet->setCellValue("I{$rowIdx}", $keuntungan);
-            $sheet->setCellValue("J{$rowIdx}", $sale->total_amount); // grand total sama di tiap baris
+            $sheet->setCellValue("A{$rowIdx}", $rowIdx - $dataStart + 1);
+            $sheet->setCellValue("B{$rowIdx}", $product->nama_barang);
+            $sheet->setCellValue("C{$rowIdx}", $product->kode_barang);
+            $sheet->setCellValue("D{$rowIdx}", ucfirst($detail->price_type));
+            $sheet->setCellValue("E{$rowIdx}", $hargaBeli);
+            $sheet->setCellValue("F{$rowIdx}", $hargaJual);
+            $sheet->setCellValue("G{$rowIdx}", $stockAwal);
+            $sheet->setCellValue("H{$rowIdx}", $stockSisa);
+            $sheet->setCellValue("I{$rowIdx}", $qty);
+            $sheet->setCellValue("J{$rowIdx}", $jumlahModal);
+            $sheet->setCellValue("K{$rowIdx}", $jumlahJual);
+            $sheet->setCellValue("L{$rowIdx}", $keuntungan);
 
-            // Format rupiah untuk kolom B,C,G,H,I,J
+            // Format rupiah untuk kolom E,F,J,K,L
             $rpFormat = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
-            foreach (['B', 'C', 'G', 'H', 'I', 'J'] as $c) {
+            foreach (['E', 'F', 'J', 'K', 'L'] as $c) {
                 $sheet->getStyle("{$c}{$rowIdx}")->getNumberFormat()->setFormatCode($rpFormat);
             }
 
             // Alternating row color: putih / abu muda
             $bgColor = ($rowIdx % 2 === 0) ? 'F8FAFC' : 'FFFFFF';
-            $sheet->getStyle("A{$rowIdx}:J{$rowIdx}")->applyFromArray([
+            $sheet->getStyle("A{$rowIdx}:L{$rowIdx}")->applyFromArray([
                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bgColor]],
                 'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
                 'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
             ]);
-            $sheet->getStyle("A{$rowIdx}")->getAlignment()->setWrapText(true);
-            $sheet->getStyle("D{$rowIdx}:F{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getRowDimension($rowIdx)->setRowHeight(28);
+            $sheet->getStyle("A{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("G{$rowIdx}:I{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getRowDimension($rowIdx)->setRowHeight(22);
             $rowIdx++;
         }
 
         // ── Total row ─────────────────────────────────────────────────────
         $totalRow = $rowIdx;
         $sheet->setCellValue("A{$totalRow}", 'TOTAL');
-        $sheet->setCellValue("G{$totalRow}", $totalModal);
-        $sheet->setCellValue("H{$totalRow}", $totalJual);
-        $sheet->setCellValue("I{$totalRow}", $totalKeuntungan);
-        $sheet->setCellValue("J{$totalRow}", $sale->total_amount);
+        $sheet->setCellValue("J{$totalRow}", $totalModal);
+        $sheet->setCellValue("K{$totalRow}", $totalJual);
+        $sheet->setCellValue("L{$totalRow}", $totalKeuntungan);
 
         $rpFormat = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
-        foreach (['G', 'H', 'I', 'J'] as $c) {
+        foreach (['J', 'K', 'L'] as $c) {
             $sheet->getStyle("{$c}{$totalRow}")->getNumberFormat()->setFormatCode($rpFormat);
         }
 
-        $sheet->getStyle("A{$totalRow}:J{$totalRow}")->applyFromArray([
+        $sheet->getStyle("A{$totalRow}:L{$totalRow}")->applyFromArray([
             'font'      => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
             'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT, 'vertical' => Alignment::VERTICAL_CENTER],
@@ -141,24 +145,24 @@ class ExportController extends Controller
 
         // ── Ringkasan keuangan (bawah) ────────────────────────────────────
         $sumRow = $totalRow + 2;
-        $sheet->setCellValue("H{$sumRow}",     'Total Modal (HPP):');
-        $sheet->setCellValue("I{$sumRow}",      $totalModal);
-        $sheet->setCellValue("H" . ($sumRow+1), 'Total Penjualan:');
-        $sheet->setCellValue("I" . ($sumRow+1),  $totalJual);
-        $sheet->setCellValue("H" . ($sumRow+2), 'Keuntungan Bersih:');
-        $sheet->setCellValue("I" . ($sumRow+2),  $totalKeuntungan);
+        $sheet->setCellValue("K{$sumRow}",     'Total Modal (HPP):');
+        $sheet->setCellValue("L{$sumRow}",      $totalModal);
+        $sheet->setCellValue("K" . ($sumRow+1), 'Total Penjualan:');
+        $sheet->setCellValue("L" . ($sumRow+1),  $totalJual);
+        $sheet->setCellValue("K" . ($sumRow+2), 'Keuntungan Bersih:');
+        $sheet->setCellValue("L" . ($sumRow+2),  $totalKeuntungan);
 
         $rpFormat = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
         foreach ([$sumRow, $sumRow+1, $sumRow+2] as $r) {
-            $sheet->getStyle("I{$r}")->getNumberFormat()->setFormatCode($rpFormat);
+            $sheet->getStyle("L{$r}")->getNumberFormat()->setFormatCode($rpFormat);
         }
-        $sheet->getStyle("H{$sumRow}:H" . ($sumRow+2))->getFont()->setBold(true);
-        $sheet->getStyle("I" . ($sumRow+2))->getFont()->setBold(true)->setColor(
+        $sheet->getStyle("K{$sumRow}:K" . ($sumRow+2))->getFont()->setBold(true);
+        $sheet->getStyle("L" . ($sumRow+2))->getFont()->setBold(true)->setColor(
             (new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB($totalKeuntungan >= 0 ? '15803d' : 'b91c1c')
         );
 
         // ── Lebar kolom ───────────────────────────────────────────────────
-        $colWidths = ['A'=>28,'B'=>14,'C'=>14,'D'=>11,'E'=>11,'F'=>13,'G'=>20,'H'=>20,'I'=>18,'J'=>20];
+        $colWidths = ['A'=>5,'B'=>28,'C'=>14,'D'=>8,'E'=>14,'F'=>14,'G'=>11,'H'=>11,'I'=>11,'J'=>20,'K'=>20,'L'=>18];
         foreach ($colWidths as $col => $width) {
             $sheet->getColumnDimension($col)->setWidth($width);
         }

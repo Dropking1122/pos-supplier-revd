@@ -359,11 +359,7 @@
                                     <span class="font-semibold {{ $lowStk ? 'text-red-600' : 'text-gray-700' }}">
                                         {{ number_format($product->kuantitas, 0, ',', '.') }}
                                     </span>
-                                    @if($lowStk)
-                                        <span class="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-semibold">LOW</span>
-                                    @endif
                                 </div>
-                                <div class="text-xs text-gray-400 text-right">min {{ $product->stock_minimum }}</div>
                             </td>
                             <td class="px-4 py-3 text-right text-gray-500 text-xs">
                                 Rp {{ number_format($product->modal_awal, 0, ',', '.') }}

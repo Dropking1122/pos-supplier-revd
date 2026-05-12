@@ -73,13 +73,15 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     @if($inputMode === 'qty')
-                                        <input wire:model="items.{{ $i }}.quantity" wire:change="recalcItem({{ $i }})" type="number" min="1" max="{{ $item['stok'] }}"
+                                        <input wire:model.live.debounce.300ms="items.{{ $i }}.quantity" type="number" min="1" max="{{ $item['stok'] }}" inputmode="numeric"
+                                               x-on:focus="setTimeout(() => $el.scrollIntoView({behavior:'smooth',block:'center'}), 350)"
                                                class="w-16 border border-gray-300 rounded px-2 py-1 text-xs text-center">
                                         <p class="text-[10px] mt-0.5 {{ $item['quantity'] >= $item['stok'] ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
                                             Sisa: {{ $item['stok'] - $item['quantity'] }} / {{ $item['stok'] }}
                                         </p>
                                     @else
-                                        <input wire:model="items.{{ $i }}.sisa_input" wire:change="updateSisa({{ $i }})" type="number" min="0" max="{{ $item['stok'] - 1 }}"
+                                        <input wire:model.live.debounce.300ms="items.{{ $i }}.sisa_input" type="number" min="0" max="{{ $item['stok'] - 1 }}" inputmode="numeric"
+                                               x-on:focus="setTimeout(() => $el.scrollIntoView({behavior:'smooth',block:'center'}), 350)"
                                                class="w-16 border border-amber-300 bg-amber-50 rounded px-2 py-1 text-xs text-center focus:ring-1 focus:ring-amber-400">
                                         <p class="text-[10px] mt-0.5 text-amber-600 font-semibold">
                                             Jual: {{ $item['quantity'] }} / {{ $item['stok'] }}
