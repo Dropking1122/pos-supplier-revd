@@ -41,10 +41,18 @@
                         handleChange(e) {
                             const file = e.target.files[0];
                             if (!file) return;
+                            if (file.size > 2 * 1024 * 1024) {
+                                alert('Ukuran file terlalu besar. Maksimal 2 MB.');
+                                e.target.value = '';
+                                return;
+                            }
                             this.fileName = file.name;
                             this.hasNew = true;
                             const reader = new FileReader();
-                            reader.onload = ev => { this.preview = ev.target.result; };
+                            reader.onload = ev => {
+                                this.preview = ev.target.result;
+                                $wire.setLogoBase64(ev.target.result, file.name);
+                            };
                             reader.readAsDataURL(file);
                         },
                         clearNew() {
@@ -52,7 +60,7 @@
                             this.fileName = null;
                             this.hasNew = false;
                             this.$refs.fileInput.value = '';
-                            @this.set('logo', null);
+                            $wire.clearLogo();
                         }
                     }">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Logo Toko</label>
@@ -103,20 +111,11 @@
                                 </div>
                             </div>
                             <input x-ref="fileInput"
-                                   wire:model="logo"
                                    type="file"
                                    accept="image/png,image/jpeg,image/gif,image/webp"
                                    class="hidden"
                                    @change="handleChange($event)">
                         </label>
-
-                        {{-- Loading indicator saat Livewire upload --}}
-                        <div wire:loading wire:target="logo" class="flex items-center gap-2 mt-2 text-xs text-indigo-600">
-                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                            Mengunggah...
-                        </div>
-
-                        @error('logo') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="pt-2">

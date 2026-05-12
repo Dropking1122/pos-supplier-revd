@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/export', [ExportController::class, 'excel'])->name('reports.export');
     Route::get('/reports/pdf', [ExportController::class, 'pdf'])->name('reports.pdf');
     Route::get('/reports/stock-export', [ExportController::class, 'stockExcel'])->name('reports.stock-export');
+    Route::get('/users', fn() => view('users.index'))->name('users.index');
     Route::get('/settings', fn() => view('settings.index'))->name('settings.index');
     Route::get('/profile', fn() => view('profile'))->name('profile.edit');
 });

@@ -118,6 +118,7 @@ class SaleCreate extends Component {
         $sale = Sale::create([
             'invoice_number' => $invoiceNumber,
             'customer_id'    => $this->customer_id ?: null,
+            'user_id'        => auth()->id(),
             'total_amount'   => $total,
             'amount_paid'    => $amountPaid,
             'payment_type'   => $this->payment_type,

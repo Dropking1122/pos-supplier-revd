@@ -57,6 +57,7 @@
                         <th class="px-4 py-3 text-center cursor-pointer hover:bg-gray-100 select-none" wire:click="sort('status')">
                             <span class="flex items-center justify-center gap-1">Status <span class="{{ $sortClass('status') }}">{{ $sortIcon('status') }}</span></span>
                         </th>
+                        <th class="px-4 py-3 text-left">Petugas</th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -77,6 +78,7 @@
                                 {{ $sale->status === 'paid' ? 'Lunas' : ($sale->status === 'partial' ? 'Sebagian' : 'Belum Bayar') }}
                             </span>
                         </td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ $sale->user?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">
                             <a href="{{ route('sales.invoice', $sale->id) }}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors mr-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
@@ -93,7 +95,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">Belum ada transaksi</td></tr>
+                    <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Belum ada transaksi</td></tr>
                     @endforelse
                 </tbody>
             </table>

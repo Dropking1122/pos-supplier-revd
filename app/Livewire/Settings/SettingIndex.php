@@ -3,16 +3,14 @@ namespace App\Livewire\Settings;
 
 use App\Models\Setting;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class SettingIndex extends Component
 {
-    use WithFileUploads;
-
     public $company_name = '', $company_address = '', $company_phone = '', $invoice_footer = '', $petugas = '';
-    public $logo;
+    public $logoBase64 = null;
+    public $logoFileName = null;
     public $showResetModal = false, $resetConfirmText = '', $resetKeepProducts = true;
 
     protected function rules()
@@ -23,7 +21,6 @@ class SettingIndex extends Component
             'company_phone'   => 'nullable|string|max:50',
             'invoice_footer'  => 'nullable|string',
             'petugas'         => 'nullable|string|max:100',
-            'logo'            => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ];
     }
 
@@ -37,9 +34,16 @@ class SettingIndex extends Component
         $this->petugas         = $s->petugas;
     }
 
-    public function updatedLogo()
+    public function setLogoBase64($dataUrl, $fileName)
     {
-        $this->validateOnly('logo');
+        $this->logoBase64   = $dataUrl;
+        $this->logoFileName = $fileName;
+    }
+
+    public function clearLogo()
+    {
+        $this->logoBase64   = null;
+        $this->logoFileName = null;
     }
 
     public function save()
@@ -55,27 +59,41 @@ class SettingIndex extends Component
             'petugas'         => $this->petugas,
         ];
 
-        if ($this->logo) {
-            // Hapus logo lama jika ada
-            if ($s->company_logo) {
-                $oldPath = public_path($s->company_logo);
-                if (file_exists($oldPath)) {
-                    @unlink($oldPath);
+        if ($this->logoBase64) {
+            // Parse the base64 data URL: data:image/png;base64,XXXX
+            if (preg_match('/^data:(image\/(\w+));base64,(.+)$/', $this->logoBase64, $matches)) {
+                $mime    = $matches[1];
+                $ext     = match($mime) {
+                    'image/jpeg' => 'jpg',
+                    'image/png'  => 'png',
+                    'image/gif'  => 'gif',
+                    'image/webp' => 'webp',
+                    default      => 'jpg',
+                };
+                $decoded = base64_decode($matches[3]);
+
+                if ($decoded !== false && strlen($decoded) > 0) {
+                    // Delete old logo
+                    if ($s->company_logo) {
+                        $oldPath = public_path($s->company_logo);
+                        if (file_exists($oldPath)) {
+                            @unlink($oldPath);
+                        }
+                    }
+
+                    $dir = public_path('logos');
+                    if (!is_dir($dir)) {
+                        mkdir($dir, 0755, true);
+                    }
+
+                    $filename = Str::random(40) . '.' . $ext;
+                    file_put_contents($dir . '/' . $filename, $decoded);
+                    $data['company_logo'] = 'logos/' . $filename;
                 }
             }
 
-            // Simpan langsung ke public/logos/ — tidak butuh symlink
-            $ext      = $this->logo->getClientOriginalExtension();
-            $filename = Str::random(40) . '.' . $ext;
-            $dir      = public_path('logos');
-
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-
-            $this->logo->move($dir, $filename);
-            $data['company_logo'] = 'logos/' . $filename;
-            $this->logo = null;
+            $this->logoBase64   = null;
+            $this->logoFileName = null;
         }
 
         $s->update($data);
@@ -92,7 +110,8 @@ class SettingIndex extends Component
             }
             $s->update(['company_logo' => null]);
         }
-        $this->logo = null;
+        $this->logoBase64   = null;
+        $this->logoFileName = null;
         $this->dispatch('toast', type: 'success', message: 'Logo berhasil dihapus.');
     }
 

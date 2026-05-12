@@ -59,7 +59,7 @@ class SaleList extends Component {
 
     public function render() {
         $customers = Customer::orderBy('name')->get();
-        $sales = Sale::with('customer')
+        $sales = Sale::with('customer', 'user')
             ->when($this->search, fn($q)=>$q->where('invoice_number','like',"%{$this->search}%")->orWhereHas('customer',fn($q2)=>$q2->where('name','like',"%{$this->search}%")))
             ->when($this->filterStatus, fn($q)=>$q->where('status',$this->filterStatus))
             ->when($this->filterDate, fn($q)=>$q->whereDate('created_at',$this->filterDate))

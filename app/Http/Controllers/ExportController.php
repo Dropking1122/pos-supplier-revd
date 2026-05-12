@@ -197,7 +197,8 @@ class ExportController extends Controller
         $spreadsheet->setActiveSheetIndex(0);
 
         // ── Output ────────────────────────────────────────────────────────
-        $filename = 'invoice-' . $sale->invoice_number . '.xlsx';
+        $customerSlug = $sale->customer ? \Illuminate\Support\Str::slug($sale->customer->name) : 'umum';
+        $filename = 'invoice-' . $customerSlug . '-' . $sale->invoice_number . '.xlsx';
         $writer   = new Xlsx($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
