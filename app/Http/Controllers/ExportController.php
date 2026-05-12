@@ -5,9 +5,206 @@ use App\Models\{Sale, Product, Setting};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\{Fill, Alignment, Border, Font};
 
 class ExportController extends Controller
 {
+    public function invoiceExcel($id)
+    {
+        $sale    = Sale::with(['customer', 'details.product'])->findOrFail($id);
+        $setting = Setting::getSettings();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Invoice');
+
+        // ── Baris 1: Info perusahaan & invoice ───────────────────────────
+        $sheet->setCellValue('A1', $setting->company_name);
+        $sheet->setCellValue('A2', 'Invoice: ' . $sale->invoice_number);
+        $sheet->setCellValue('A3', 'Tanggal: ' . $sale->created_at->format('d/m/Y H:i'));
+        if ($sale->customer) {
+            $sheet->setCellValue('A4', 'Customer: ' . $sale->customer->name);
+        }
+        $sheet->setCellValue('A5', 'Pembayaran: ' . ($sale->payment_type === 'cash' ? 'Cash / Tunai' : 'Tempo / Kredit'));
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+        $sheet->getStyle('A1:A5')->getFont()->setColor(
+            (new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB('1e293b')
+        );
+
+        // ── Baris 7: Header kolom (orange seperti gambar) ─────────────────
+        $headerRow = 7;
+        $headers   = [
+            'A' => 'NAMA BARANG',
+            'B' => 'HARGA BELI',
+            'C' => 'HARGA JUAL',
+            'D' => 'STOK AWAL',
+            'E' => 'SISA STOK',
+            'F' => 'STOK TERJUAL',
+            'G' => 'JUMLAH TOTAL MODAL',
+            'H' => 'JUMLAH TOTAL JUAL',
+            'I' => 'KEUNTUNGAN',
+            'J' => 'TOTAL PENJUALAN',
+        ];
+
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue("{$col}{$headerRow}", $label);
+        }
+
+        // Style header: orange background, white bold text, border
+        $headerRange = "A{$headerRow}:J{$headerRow}";
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E36C09']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'C0C0C0']]],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(32);
+
+        // ── Data rows ─────────────────────────────────────────────────────
+        $totalModal      = 0;
+        $totalJual       = 0;
+        $totalKeuntungan = 0;
+        $dataStart       = $headerRow + 1;
+        $rowIdx          = $dataStart;
+
+        foreach ($sale->details as $detail) {
+            $product  = $detail->product;
+            $qty      = (int) $detail->quantity;
+            $stockAwal = $detail->stock_before !== null
+                ? (int) $detail->stock_before
+                : ($product->kuantitas + $qty);
+            $stockSisa      = $stockAwal - $qty;
+            $hargaBeli      = (float) $product->modal_awal;
+            $hargaJual      = (float) $detail->unit_price;
+            $jumlahModal    = $hargaBeli * $qty;
+            $jumlahJual     = (float) $detail->subtotal;
+            $keuntungan     = $jumlahJual - $jumlahModal;
+
+            $totalModal      += $jumlahModal;
+            $totalJual       += $jumlahJual;
+            $totalKeuntungan += $keuntungan;
+
+            $sheet->setCellValue("A{$rowIdx}", $product->nama_barang . "\n(" . $product->kode_barang . ' · ' . ucfirst($detail->price_type) . ')');
+            $sheet->setCellValue("B{$rowIdx}", $hargaBeli);
+            $sheet->setCellValue("C{$rowIdx}", $hargaJual);
+            $sheet->setCellValue("D{$rowIdx}", $stockAwal);
+            $sheet->setCellValue("E{$rowIdx}", $stockSisa);
+            $sheet->setCellValue("F{$rowIdx}", $qty);
+            $sheet->setCellValue("G{$rowIdx}", $jumlahModal);
+            $sheet->setCellValue("H{$rowIdx}", $jumlahJual);
+            $sheet->setCellValue("I{$rowIdx}", $keuntungan);
+            $sheet->setCellValue("J{$rowIdx}", $sale->total_amount); // grand total sama di tiap baris
+
+            // Format rupiah untuk kolom B,C,G,H,I,J
+            $rpFormat = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+            foreach (['B', 'C', 'G', 'H', 'I', 'J'] as $c) {
+                $sheet->getStyle("{$c}{$rowIdx}")->getNumberFormat()->setFormatCode($rpFormat);
+            }
+
+            // Alternating row color: putih / abu muda
+            $bgColor = ($rowIdx % 2 === 0) ? 'F8FAFC' : 'FFFFFF';
+            $sheet->getStyle("A{$rowIdx}:J{$rowIdx}")->applyFromArray([
+                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bgColor]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+            ]);
+            $sheet->getStyle("A{$rowIdx}")->getAlignment()->setWrapText(true);
+            $sheet->getStyle("D{$rowIdx}:F{$rowIdx}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getRowDimension($rowIdx)->setRowHeight(28);
+            $rowIdx++;
+        }
+
+        // ── Total row ─────────────────────────────────────────────────────
+        $totalRow = $rowIdx;
+        $sheet->setCellValue("A{$totalRow}", 'TOTAL');
+        $sheet->setCellValue("G{$totalRow}", $totalModal);
+        $sheet->setCellValue("H{$totalRow}", $totalJual);
+        $sheet->setCellValue("I{$totalRow}", $totalKeuntungan);
+        $sheet->setCellValue("J{$totalRow}", $sale->total_amount);
+
+        $rpFormat = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+        foreach (['G', 'H', 'I', 'J'] as $c) {
+            $sheet->getStyle("{$c}{$totalRow}")->getNumberFormat()->setFormatCode($rpFormat);
+        }
+
+        $sheet->getStyle("A{$totalRow}:J{$totalRow}")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getStyle("A{$totalRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getRowDimension($totalRow)->setRowHeight(28);
+
+        // ── Ringkasan keuangan (bawah) ────────────────────────────────────
+        $sumRow = $totalRow + 2;
+        $sheet->setCellValue("H{$sumRow}",     'Total Modal (HPP):');
+        $sheet->setCellValue("I{$sumRow}",      $totalModal);
+        $sheet->setCellValue("H" . ($sumRow+1), 'Total Penjualan:');
+        $sheet->setCellValue("I" . ($sumRow+1),  $totalJual);
+        $sheet->setCellValue("H" . ($sumRow+2), 'Keuntungan Bersih:');
+        $sheet->setCellValue("I" . ($sumRow+2),  $totalKeuntungan);
+
+        $rpFormat = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+        foreach ([$sumRow, $sumRow+1, $sumRow+2] as $r) {
+            $sheet->getStyle("I{$r}")->getNumberFormat()->setFormatCode($rpFormat);
+        }
+        $sheet->getStyle("H{$sumRow}:H" . ($sumRow+2))->getFont()->setBold(true);
+        $sheet->getStyle("I" . ($sumRow+2))->getFont()->setBold(true)->setColor(
+            (new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB($totalKeuntungan >= 0 ? '15803d' : 'b91c1c')
+        );
+
+        // ── Lebar kolom ───────────────────────────────────────────────────
+        $colWidths = ['A'=>28,'B'=>14,'C'=>14,'D'=>11,'E'=>11,'F'=>13,'G'=>20,'H'=>20,'I'=>18,'J'=>20];
+        foreach ($colWidths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        // ── Sheet 2: Info Transaksi ───────────────────────────────────────
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('Info Transaksi');
+        $sheet2->setCellValue('A1', 'INFO TRANSAKSI');
+        $sheet2->getStyle('A1')->getFont()->setBold(true)->setSize(12);
+        $infoData = [
+            ['No. Invoice',    $sale->invoice_number],
+            ['Tanggal',        $sale->created_at->format('d/m/Y H:i')],
+            ['Customer',       $sale->customer?->name ?? 'Umum'],
+            ['Pembayaran',     $sale->payment_type === 'cash' ? 'Cash / Tunai' : 'Tempo / Kredit'],
+            ['Status',         $sale->status === 'paid' ? 'LUNAS' : ($sale->status === 'partial' ? 'SEBAGIAN' : 'BELUM BAYAR')],
+            ['Total Tagihan',  'Rp ' . number_format($sale->total_amount, 0, ',', '.')],
+            ['Sudah Dibayar',  'Rp ' . number_format($sale->amount_paid, 0, ',', '.')],
+            ['Sisa Hutang',    'Rp ' . number_format($sale->total_amount - $sale->amount_paid, 0, ',', '.')],
+            ['Toko',           $setting->company_name],
+            ['Alamat',         $setting->company_address ?? ''],
+            ['Telepon',        $setting->company_phone ?? ''],
+        ];
+        foreach ($infoData as $i => $row) {
+            $r = $i + 3;
+            $sheet2->setCellValue("A{$r}", $row[0]);
+            $sheet2->setCellValue("B{$r}", $row[1]);
+            $sheet2->getStyle("A{$r}")->getFont()->setBold(true);
+        }
+        $sheet2->getColumnDimension('A')->setWidth(18);
+        $sheet2->getColumnDimension('B')->setWidth(30);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        // ── Output ────────────────────────────────────────────────────────
+        $filename = 'invoice-' . $sale->invoice_number . '.xlsx';
+        $writer   = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'max-age=0',
+        ]);
+    }
+
     public function pdf(Request $request)
     {
         $sales        = $this->getSales($request);

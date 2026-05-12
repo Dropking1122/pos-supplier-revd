@@ -75,11 +75,15 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
 <div class="page">
 
     {{-- Tombol Aksi --}}
-    <div class="no-print" style="display:flex;gap:8px;margin-bottom:22px;">
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;">
         <button onclick="window.print()"
-            style="background:#4f46e5;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;">
+            style="background:#4f46e5;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
             🖨 Cetak Invoice
         </button>
+        <a href="{{ route('sales.invoice-excel', $sale->id) }}"
+            style="background:#16a34a;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            📥 Export Excel
+        </a>
         <button onclick="window.close()"
             style="background:#f1f5f9;color:#334155;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;">
             ✕ Tutup
