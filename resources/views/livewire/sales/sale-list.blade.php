@@ -1,13 +1,13 @@
 <div>
     <div class="flex flex-col sm:flex-row gap-3 mb-3">
         <input wire:model.live="search" type="text" placeholder="Cari invoice / customer..." class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <select wire:model.live="filterCustomer" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <select wire:model.live="filterCustomer" class="border border-gray-300 rounded-lg pl-3 pr-9 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none bg-white" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;">
             <option value="">Semua Customer</option>
             @foreach($customers as $c)
                 <option value="{{ $c->id }}">{{ $c->name }}</option>
             @endforeach
         </select>
-        <select wire:model.live="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <select wire:model.live="filterStatus" class="border border-gray-300 rounded-lg pl-3 pr-9 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none bg-white" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;">
             <option value="">Semua Status</option>
             <option value="paid">Lunas</option>
             <option value="partial">Sebagian</option>
