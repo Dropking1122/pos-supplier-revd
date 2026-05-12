@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{Sale, Setting};
+use App\Models\{Sale, Product, Setting};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExportController extends Controller
@@ -141,6 +142,118 @@ class ExportController extends Controller
             if ($setting->invoice_footer) {
                 fputcsv($f, [$setting->invoice_footer]);
             }
+
+            fclose($f);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function stockExcel(Request $request)
+    {
+        $date    = $request->date ?? now()->format('Y-m-d');
+        $setting = Setting::getSettings();
+
+        $soldData = DB::table('sale_details')
+            ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
+            ->whereDate('sales.created_at', $date)
+            ->select(
+                'sale_details.product_id',
+                DB::raw('SUM(sale_details.quantity) as total_qty'),
+                DB::raw('SUM(sale_details.subtotal) as total_pendapatan')
+            )
+            ->groupBy('sale_details.product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        $products = Product::orderBy('nama_barang')->get()->map(function ($p) use ($soldData) {
+            $sold              = $soldData->get($p->id);
+            $p->terjual        = $sold ? (int)   $sold->total_qty       : 0;
+            $p->pendapatan     = $sold ? (float)  $sold->total_pendapatan : 0;
+            $p->stock_awal     = $p->kuantitas + $p->terjual;
+            $p->keuntungan     = $p->pendapatan - ($p->terjual * (float) $p->modal_awal);
+            return $p;
+        });
+
+        $label    = \Carbon\Carbon::parse($date)->isoFormat('D MMMM Y');
+        $filename = "stock-harian-{$date}.csv";
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($products, $setting, $label, $date) {
+            $f = fopen('php://output', 'w');
+            fprintf($f, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($f, ['LAPORAN STOCK HARIAN']);
+            fputcsv($f, ['Toko',      $setting->company_name]);
+            fputcsv($f, ['Tanggal',   $label]);
+            fputcsv($f, ['Dicetak',   now()->format('d/m/Y H:i')]);
+            fputcsv($f, []);
+
+            $total_terjual    = $products->sum('terjual');
+            $tidak_terjual    = $products->where('terjual', 0)->count();
+            $total_pendapatan = $products->sum('pendapatan');
+            $total_keuntungan = $products->sum('keuntungan');
+            $low_stock        = $products->filter(fn($p) => $p->kuantitas <= $p->stock_minimum)->count();
+
+            fputcsv($f, ['=== RINGKASAN ===']);
+            fputcsv($f, ['Total Produk',          $products->count()]);
+            fputcsv($f, ['Total Terjual (unit)',   $total_terjual]);
+            fputcsv($f, ['Tidak Terjual (jenis)',  $tidak_terjual]);
+            fputcsv($f, ['Total Pendapatan', 'Rp ' . number_format($total_pendapatan, 0, ',', '.')]);
+            fputcsv($f, ['Total Keuntungan', 'Rp ' . number_format($total_keuntungan, 0, ',', '.')]);
+            fputcsv($f, ['Stok Menipis',           $low_stock]);
+            fputcsv($f, []);
+
+            fputcsv($f, ['=== DETAIL STOCK ===']);
+            fputcsv($f, [
+                'No', 'Kode Barang', 'Nama Produk', 'Jenis',
+                'Stock Awal', 'Terjual', 'Sisa Stock', 'Stock Minimum',
+                'Harga Modal (Rp)', 'Harga Grosir (Rp)', 'Harga Ecer (Rp)',
+                'Pendapatan (Rp)', 'Keuntungan (Rp)', 'Status',
+            ]);
+
+            foreach ($products as $i => $p) {
+                $low    = $p->kuantitas <= $p->stock_minimum;
+                $sold   = $p->terjual > 0;
+                $status = match (true) {
+                    $sold && $low  => 'Terjual · Low Stock',
+                    $sold          => 'Terjual',
+                    $low           => 'Stok Menipis',
+                    default        => 'Tidak Terjual',
+                };
+                fputcsv($f, [
+                    $i + 1,
+                    $p->kode_barang,
+                    $p->nama_barang,
+                    $p->jenis_barang,
+                    $p->stock_awal,
+                    $p->terjual ?: '-',
+                    $p->kuantitas,
+                    $p->stock_minimum,
+                    $p->modal_awal,
+                    $p->harga_grosir,
+                    $p->harga_ecer,
+                    $p->pendapatan ?: '-',
+                    $p->terjual > 0 ? $p->keuntungan : '-',
+                    $status,
+                ]);
+            }
+
+            fputcsv($f, []);
+            fputcsv($f, [
+                '', '', '', 'TOTAL',
+                $products->sum('stock_awal'),
+                $total_terjual,
+                $products->sum('kuantitas'),
+                '', '', '', '',
+                $total_pendapatan,
+                $total_keuntungan,
+                '',
+            ]);
 
             fclose($f);
         };
