@@ -6,12 +6,27 @@
     <title>{{ $setting->company_name ?? config('app.name') }} - POS Supplier</title>
     <meta name="description" content="Sistem Point of Sale untuk {{ $setting->company_name ?? config('app.name') }}. Kelola penjualan, stok produk, dan laporan bisnis.">
     <meta name="robots" content="noindex, nofollow">
+
+    {{-- PWA Meta Tags --}}
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ $setting->company_name ?? config('app.name') }}">
+    <meta name="application-name" content="{{ $setting->company_name ?? config('app.name') }}">
+    <meta name="msapplication-TileColor" content="#4f46e5">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    {{-- PWA Manifest & Icons --}}
+    <link rel="manifest" href="/manifest.json">
     @if($setting->company_logo)
     <link rel="icon" href="{{ asset($setting->company_logo) }}">
     <link rel="apple-touch-icon" href="{{ asset($setting->company_logo) }}">
     @else
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M13 10V3L4 14h7v7l9-11h-7z'/></svg>">
+    <link rel="icon" type="image/png" href="/pwa/icon/192">
+    <link rel="apple-touch-icon" href="/pwa/icon/192">
     @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -302,7 +317,105 @@
         </footer>
     </div>
 </div>
+
+{{-- PWA Install Prompt Banner --}}
+<div
+    x-data="{
+        show: false,
+        deferredPrompt: null,
+        installed: false,
+        init() {
+            if (window.matchMedia('(display-mode: standalone)').matches) return;
+            window.addEventListener('beforeinstallprompt', e => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                setTimeout(() => { this.show = true; }, 3000);
+            });
+            window.addEventListener('appinstalled', () => {
+                this.show = false;
+                this.installed = true;
+            });
+        },
+        async install() {
+            if (!this.deferredPrompt) return;
+            this.deferredPrompt.prompt();
+            const { outcome } = await this.deferredPrompt.userChoice;
+            this.deferredPrompt = null;
+            this.show = false;
+        },
+        dismiss() {
+            this.show = false;
+            localStorage.setItem('pwa-dismissed', Date.now());
+        }
+    }"
+    x-init="
+        const dismissed = localStorage.getItem('pwa-dismissed');
+        if (dismissed && (Date.now() - parseInt(dismissed)) < 7 * 24 * 60 * 60 * 1000) return;
+        init();
+    "
+    x-show="show"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 translate-y-4"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 translate-y-4"
+    class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-80 z-[9998]"
+    style="display:none;"
+>
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-4 flex items-center gap-3">
+        <div class="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-white leading-tight">Install Aplikasi</p>
+            <p class="text-xs text-slate-400 leading-snug mt-0.5">Akses lebih cepat seperti aplikasi native</p>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button @click="install()"
+                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors">
+                Install
+            </button>
+            <button @click="dismiss()"
+                    class="p-1.5 text-slate-500 hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 @livewireScripts
+
+{{-- Service Worker Registration --}}
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => {
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.dispatchEvent(new CustomEvent('toast', {
+                                detail: {
+                                    type: 'info',
+                                    title: 'Update Tersedia',
+                                    message: 'Muat ulang halaman untuk mendapatkan versi terbaru.',
+                                    duration: 6000
+                                }
+                            }));
+                        }
+                    });
+                });
+            })
+            .catch(() => {});
+    });
+}
+</script>
 
 @if(session('toast_success') || session('message'))
 <script>

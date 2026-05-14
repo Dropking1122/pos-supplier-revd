@@ -3,6 +3,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\PwaController;
+
+// ── PWA (public — no auth required) ───────────────────────
+Route::get('/manifest.json', [PwaController::class, 'manifest'])->name('pwa.manifest');
+Route::get('/sw.js',         [PwaController::class, 'sw'])->name('pwa.sw');
+Route::get('/offline',       [PwaController::class, 'offline'])->name('pwa.offline');
+Route::get('/pwa/icon/{size}', [PwaController::class, 'icon'])
+    ->where('size', '192|512')
+    ->name('pwa.icon');
 
 Route::get('/', fn() => redirect()->route('dashboard'));
 
