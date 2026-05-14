@@ -84,15 +84,10 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
             style="background:#0284c7;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
             🧾 Invoice Customer
         </a>
-        <a href="{{ route('sales.invoice-excel', $sale->id) }}"
-            style="background:#16a34a;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
-            📥 Export Excel
-        </a>
         <button onclick="window.close()"
             style="background:#f1f5f9;color:#334155;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;">
             ✕ Tutup
         </button>
-        <span style="font-size:11px;color:#94a3b8;margin-left:4px;">📋 Laporan Internal</span>
     </div>
 
     {{-- Header --}}
@@ -106,8 +101,8 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
             <div class="company-info">{{ $setting->company_phone }}</div>
         </div>
         <div>
-            <div class="invoice-badge">INVOICE</div>
-            <div class="invoice-number"># {{ $sale->invoice_number }}</div>
+            <div class="invoice-badge">LAPORAN PENJUALAN</div>
+            <div class="invoice-number">{{ $sale->invoice_number }}</div>
             <div class="invoice-meta">Tanggal: {{ $sale->created_at->format('d M Y, H:i') }}</div>
             @if($sale->due_date)
                 <div class="invoice-meta">Jatuh Tempo: {{ $sale->due_date->format('d M Y') }}</div>
