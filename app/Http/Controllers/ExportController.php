@@ -167,6 +167,18 @@ class ExportController extends Controller
             $sheet->getColumnDimension($col)->setWidth($width);
         }
 
+        // ── Keterangan kolom ─────────────────────────────────────────────
+        $this->writeLegend($sheet, $sumRow + 4, 'L', [
+            ['E', 'Harga Beli',          'Modal / HPP (Harga Pokok Penjualan) per unit barang. Harga saat toko membeli barang dari supplier.'],
+            ['F', 'Harga Jual',          'Harga jual aktual per unit pada saat transaksi ini terjadi (bisa harga grosir atau harga ecer, tergantung tipe penjualan).'],
+            ['G', 'Stok Awal',           'Perkiraan stok sebelum transaksi ini diproses. Rumus: Sisa Stok + Stok Terjual.'],
+            ['H', 'Sisa Stok',           'Jumlah stok setelah transaksi selesai. Rumus: Stok Awal − Stok Terjual.'],
+            ['I', 'Stok Terjual',        'Jumlah unit barang yang dibeli customer dalam transaksi ini.'],
+            ['J', 'Jumlah Total Modal',  'Total biaya pengadaan untuk item ini. Rumus: Harga Beli × Stok Terjual.'],
+            ['K', 'Jumlah Total Jual',   'Total pendapatan dari item ini (= Subtotal). Rumus: Harga Jual × Stok Terjual.'],
+            ['L', 'Keuntungan',          'Profit bersih per item dalam transaksi. Rumus: Jumlah Total Jual − Jumlah Total Modal. Nilai minus berarti rugi.'],
+        ]);
+
         // ── Sheet 2: Info Transaksi ───────────────────────────────────────
         $sheet2 = $spreadsheet->createSheet();
         $sheet2->setTitle('Info Transaksi');
@@ -682,6 +694,19 @@ class ExportController extends Controller
             $sheet->setCellValue("A" . ($rowIdx + 2), $setting->invoice_footer);
         }
 
+        // ── Keterangan kolom ─────────────────────────────────────────────
+        $legendStart = $rowIdx + ($setting->invoice_footer ? 4 : 3);
+        $this->writeLegend($sheet, $legendStart, 'N', [
+            ['G', 'Total (Rp)',           'Total nilai penjualan yang ditagihkan ke customer. Nominal sebelum dikurangi modal.'],
+            ['H', 'Modal / HPP (Rp)',     'Total Harga Pokok Penjualan semua item. Rumus: Σ (Harga Beli × Qty) untuk setiap produk dalam transaksi.'],
+            ['I', 'Profit (Rp)',          'Keuntungan bersih transaksi. Rumus: Total Penjualan − Modal (HPP). Nilai minus berarti rugi.'],
+            ['J', 'Margin (%)',           'Persentase keuntungan terhadap penjualan. Rumus: (Profit ÷ Total Penjualan) × 100%. Semakin tinggi semakin baik.'],
+            ['K', 'Status Bayar',         'Lunas = sudah dibayar penuh  |  Sebagian = ada cicilan masuk, masih ada sisa  |  Belum Bayar = belum ada pembayaran sama sekali.'],
+            ['L', 'Jatuh Tempo',          'Tanggal batas pembayaran untuk transaksi tempo/kredit. Kosong (-) jika tipe pembayaran adalah cash.'],
+            ['M', 'Sudah Dibayar (Rp)',   'Total nominal yang sudah diterima dari customer, termasuk semua riwayat cicilan yang tercatat.'],
+            ['N', 'Sisa Hutang (Rp)',     'Sisa tagihan yang belum dibayar. Rumus: Total − Sudah Dibayar. Bernilai 0 jika status sudah Lunas.'],
+        ]);
+
         $writer   = new Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
         $writer->save($tempFile);
@@ -832,6 +857,20 @@ class ExportController extends Controller
             $sheet->getColumnDimension($col)->setWidth($w);
         }
 
+        // ── Keterangan kolom ─────────────────────────────────────────────
+        $this->writeLegend($sheet, $rowIdx + 2, 'N', [
+            ['E', 'Stock Awal',    'Perkiraan jumlah stok di awal hari. Rumus: Sisa Stok saat ini + Total Terjual hari ini. (Estimasi — bisa berbeda jika ada transaksi setelah laporan dicetak.)'],
+            ['F', 'Terjual',       'Total unit barang yang berhasil terjual sepanjang tanggal laporan ini.'],
+            ['G', 'Sisa Stock',    'Jumlah stok yang masih tersisa saat laporan ini dicetak. Rumus: Stock Awal − Terjual.'],
+            ['H', 'Stock Min',     'Batas stok minimum yang ditentukan. Jika Sisa Stock ≤ nilai ini, barang perlu segera direstock (ditandai merah).'],
+            ['I', 'Harga Modal',   'Harga beli / HPP (Harga Pokok Penjualan) per unit barang dari supplier.'],
+            ['J', 'Harga Grosir',  'Harga jual untuk pembelian partai besar / grosir.'],
+            ['K', 'Harga Ecer',    'Harga jual untuk pembelian satuan / ecer.'],
+            ['L', 'Pendapatan',    'Total pemasukan dari penjualan barang ini hari ini. Rumus: Harga Jual × Qty Terjual. Bernilai 0 jika tidak ada penjualan.'],
+            ['M', 'Keuntungan',    'Profit bersih dari penjualan barang ini. Rumus: Pendapatan − (Harga Modal × Qty Terjual). Bernilai 0 jika tidak ada penjualan hari ini.'],
+            ['N', 'Status',        'Terjual = ada penjualan hari ini  |  Stok Menipis = stok ≤ minimum, perlu restock  |  Terjual · Low Stock = terjual tapi stok sudah menipis  |  Tidak Terjual = tidak ada transaksi hari ini.'],
+        ]);
+
         $writer   = new Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
         $writer->save($tempFile);
@@ -839,6 +878,93 @@ class ExportController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0',
         ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Tulis section keterangan kolom ke worksheet, mulai dari $startRow.
+     * $entries = [ ['Kolom', 'Nama Kolom', 'Keterangan / Rumus'], ... ]
+     */
+    private function writeLegend(
+        \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet,
+        int  $startRow,
+        string $lastDataCol,
+        array  $entries,
+        string $footerNote = ''
+    ): void {
+        $row = $startRow;
+
+        // ── Judul seksi ───────────────────────────────────────────────────
+        $sheet->setCellValue("A{$row}", 'KETERANGAN KOLOM');
+        $sheet->mergeCells("A{$row}:{$lastDataCol}{$row}");
+        $sheet->getStyle("A{$row}:{$lastDataCol}{$row}")->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1e293b']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT,
+                            'vertical'   => Alignment::VERTICAL_CENTER,
+                            'indent'     => 1],
+        ]);
+        $sheet->getRowDimension($row)->setRowHeight(22);
+        $row++;
+
+        // ── Sub-header ────────────────────────────────────────────────────
+        $sheet->setCellValue("A{$row}", 'Kolom');
+        $sheet->setCellValue("B{$row}", 'Nama Kolom');
+        $sheet->setCellValue("C{$row}", 'Keterangan / Rumus Perhitungan');
+        $sheet->mergeCells("C{$row}:{$lastDataCol}{$row}");
+        $sheet->getStyle("A{$row}:{$lastDataCol}{$row}")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 9, 'color' => ['rgb' => 'FFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER,
+                            'vertical'   => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN,
+                                             'color'       => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getStyle("C{$row}")->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_LEFT)->setIndent(1);
+        $sheet->getRowDimension($row)->setRowHeight(18);
+        $row++;
+
+        // ── Baris keterangan ─────────────────────────────────────────────
+        foreach ($entries as $idx => [$colLetter, $colName, $desc]) {
+            $bg = ($idx % 2 === 0) ? 'F8FAFC' : 'FFFFFF';
+
+            $sheet->setCellValue("A{$row}", $colLetter);
+            $sheet->setCellValue("B{$row}", $colName);
+            $sheet->setCellValue("C{$row}", $desc);
+            $sheet->mergeCells("C{$row}:{$lastDataCol}{$row}");
+
+            $sheet->getStyle("A{$row}:{$lastDataCol}{$row}")->applyFromArray([
+                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN,
+                                                 'color'       => ['rgb' => 'E5E7EB']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                'font'      => ['size' => 9],
+            ]);
+            // Kolom letter: bold + ungu
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true)
+                ->setColor((new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB('4338ca'));
+            $sheet->getStyle("A{$row}")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            // Nama kolom: bold
+            $sheet->getStyle("B{$row}")->getFont()->setBold(true)->setSize(9);
+            // Keterangan: wrap
+            $sheet->getStyle("C{$row}")->getAlignment()
+                ->setWrapText(true)->setIndent(1);
+            $sheet->getRowDimension($row)->setRowHeight(20);
+            $row++;
+        }
+
+        // ── Footnote ─────────────────────────────────────────────────────
+        $note = $footerNote ?: 'Laporan ini digenerate otomatis oleh sistem. Data bersumber dari database transaksi real-time.';
+        $sheet->setCellValue("A{$row}", '  * ' . $note);
+        $sheet->mergeCells("A{$row}:{$lastDataCol}{$row}");
+        $sheet->getStyle("A{$row}:{$lastDataCol}{$row}")->applyFromArray([
+            'font'      => ['italic' => true, 'size' => 8, 'color' => ['rgb' => '94a3b8']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8FAFC']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT,
+                            'vertical'   => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension($row)->setRowHeight(15);
     }
 
     private function getSales(Request $request)
