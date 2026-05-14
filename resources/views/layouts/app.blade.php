@@ -210,19 +210,82 @@
             <div class="flex items-center gap-1.5">
                 <livewire:notification-bell />
                 <div class="w-px h-5 bg-gray-200 mx-1 hidden sm:block"></div>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+
+                {{-- User Dropdown --}}
+                <div x-data="{ userOpen: false }" class="relative">
+                    <button @click="userOpen = !userOpen" @keydown.escape.window="userOpen = false"
+                            class="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-gray-100 transition-colors focus:outline-none">
+                        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <div class="hidden sm:flex items-center gap-1.5">
+                            <span class="text-sm text-gray-600 font-medium">{{ auth()->user()->name }}</span>
+                            @if(auth()->user()->is_admin)
+                            <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full leading-none">ADMIN</span>
+                            @else
+                            <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full leading-none">KASIR</span>
+                            @endif
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-gray-400 hidden sm:block transition-transform duration-200" :class="userOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                    </div>
-                    <div class="hidden sm:flex items-center gap-1.5">
-                        <span class="text-sm text-gray-600 font-medium">{{ auth()->user()->name }}</span>
-                        @if(auth()->user()->is_admin)
-                        <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full leading-none">ADMIN</span>
-                        @else
-                        <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full leading-none">KASIR</span>
-                        @endif
+                    </button>
+
+                    {{-- Dropdown Panel --}}
+                    <div x-show="userOpen"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                         @click.outside="userOpen = false"
+                         class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                         style="display:none;">
+
+                        {{-- User Info --}}
+                        <div class="px-4 py-3 border-b border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 {{ auth()->user()->is_admin ? 'bg-indigo-100' : 'bg-emerald-100' }} rounded-full flex items-center justify-center shrink-0">
+                                    <span class="{{ auth()->user()->is_admin ? 'text-indigo-600' : 'text-emerald-600' }} text-sm font-bold">
+                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                    </span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-gray-800 truncate">{{ auth()->user()->name }}</p>
+                                    <p class="text-xs text-gray-400 truncate">{{ auth()->user()->email }}</p>
+                                    <span class="mt-0.5 inline-block px-1.5 py-0.5 {{ auth()->user()->is_admin ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700' }} text-[10px] font-bold rounded-full leading-none">
+                                        {{ auth()->user()->is_admin ? 'Admin' : 'Kasir' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Menu Items --}}
+                        <div class="p-1.5 space-y-0.5">
+                            <a href="{{ route('profile.edit') }}" @click="userOpen = false"
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Profil Akun
+                            </a>
+
+                            <div class="border-t border-gray-100 my-1"></div>
+
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
