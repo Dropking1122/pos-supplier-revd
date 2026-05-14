@@ -36,12 +36,14 @@ class UserIndex extends Component
         ];
     }
 
+    private function requireAdmin(): void
+    {
+        abort_unless(auth()->check() && auth()->user()->is_admin, 403, 'Akses ditolak.');
+    }
+
     public function openCreate()
     {
-        if (!auth()->user()->is_admin) {
-            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menambah user.');
-            return;
-        }
+        $this->requireAdmin();
         $this->reset(['editId', 'name', 'email', 'password', 'password_confirmation', 'is_admin']);
         $this->resetErrorBag();
         $this->showModal = true;
@@ -49,10 +51,7 @@ class UserIndex extends Component
 
     public function openEdit($id)
     {
-        if (!auth()->user()->is_admin) {
-            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat mengedit user.');
-            return;
-        }
+        $this->requireAdmin();
         $user = User::findOrFail($id);
         $this->editId   = $id;
         $this->name     = $user->name;
@@ -66,10 +65,7 @@ class UserIndex extends Component
 
     public function save()
     {
-        if (!auth()->user()->is_admin) {
-            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat mengelola user.');
-            return;
-        }
+        $this->requireAdmin();
         $this->validate();
 
         if ($this->editId) {
@@ -104,10 +100,7 @@ class UserIndex extends Component
 
     public function confirmDelete($id)
     {
-        if (!auth()->user()->is_admin) {
-            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menghapus user.');
-            return;
-        }
+        $this->requireAdmin();
         if ($id === auth()->id()) {
             $this->dispatch('toast', type: 'error', message: 'Tidak bisa menghapus akun yang sedang digunakan.');
             return;
@@ -120,11 +113,7 @@ class UserIndex extends Component
 
     public function deleteUser()
     {
-        if (!auth()->user()->is_admin) {
-            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menghapus user.');
-            $this->showDeleteModal = false;
-            return;
-        }
+        $this->requireAdmin();
         if ($this->deleteId === auth()->id()) {
             $this->dispatch('toast', type: 'error', message: 'Tidak bisa menghapus akun yang sedang digunakan.');
             $this->showDeleteModal = false;

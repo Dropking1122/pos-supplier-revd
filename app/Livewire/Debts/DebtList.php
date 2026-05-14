@@ -10,16 +10,15 @@ class DebtList extends Component {
     public $payDebtId = null, $payAmount = 0, $payDate = '', $payNotes = '';
     public $sortField = 'created_at', $sortDirection = 'desc';
 
+    protected array $allowedSortFields = ['created_at', 'total_hutang', 'sisa_hutang', 'jatuh_tempo', 'status'];
+
     public function updatingSearch() { $this->resetPage(); }
     public function updatingFilterStatus() { $this->resetPage(); }
 
     public function sort($field) {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
+        if (!in_array($field, $this->allowedSortFields, true)) return;
+        $this->sortDirection = ($this->sortField === $field && $this->sortDirection === 'asc') ? 'desc' : 'asc';
+        $this->sortField = $field;
         $this->resetPage();
     }
 

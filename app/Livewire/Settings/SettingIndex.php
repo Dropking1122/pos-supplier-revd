@@ -32,8 +32,14 @@ class SettingIndex extends Component
         ];
     }
 
+    private function requireAdmin(): void
+    {
+        abort_unless(auth()->check() && auth()->user()->is_admin, 403, 'Akses ditolak.');
+    }
+
     public function mount()
     {
+        $this->requireAdmin();
         $s = Setting::getSettings();
         $this->company_name    = $s->company_name;
         $this->company_address = $s->company_address;
@@ -56,6 +62,7 @@ class SettingIndex extends Component
 
     public function save()
     {
+        $this->requireAdmin();
         $this->validate();
 
         $s    = Setting::getSettings();
@@ -80,6 +87,13 @@ class SettingIndex extends Component
                 $decoded = base64_decode($matches[3]);
 
                 if ($decoded !== false && strlen($decoded) > 0) {
+                    // Validasi bahwa konten adalah benar-benar file gambar
+                    $imgInfo = @getimagesizefromstring($decoded);
+                    if (!$imgInfo) {
+                        $this->addError('company_logo', 'File yang diupload bukan gambar yang valid.');
+                        return;
+                    }
+
                     if ($s->company_logo) {
                         $oldPath = public_path($s->company_logo);
                         if (file_exists($oldPath)) @unlink($oldPath);
@@ -104,6 +118,7 @@ class SettingIndex extends Component
 
     public function deleteLogo()
     {
+        $this->requireAdmin();
         $s = Setting::getSettings();
         if ($s->company_logo) {
             $path = public_path($s->company_logo);
@@ -117,6 +132,8 @@ class SettingIndex extends Component
 
     public function resetDatabase()
     {
+        $this->requireAdmin();
+
         if (strtoupper(trim($this->resetConfirmText)) !== 'RESET') {
             $this->addError('resetConfirmText', 'Ketik RESET untuk konfirmasi.');
             return;

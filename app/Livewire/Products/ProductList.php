@@ -30,6 +30,12 @@ class ProductList extends Component {
     public $deleteKode = '';
     public $deleteStok = 0;
 
+    protected array $allowedSortFields = [
+        'nama_barang', 'kode_barang', 'jenis_barang', 'kuantitas',
+        'modal_awal', 'harga_grosir', 'harga_ecer', 'stock_minimum',
+        'total_terjual', 'total_pendapatan',
+    ];
+
     protected $queryString = ['filterLowStock' => ['except' => false]];
 
     protected $rules = [
@@ -58,12 +64,9 @@ class ProductList extends Component {
     public function updatingFilterLowStock() { $this->resetPage(); }
 
     public function sort($field) {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
+        if (!in_array($field, $this->allowedSortFields, true)) return;
+        $this->sortDirection = ($this->sortField === $field && $this->sortDirection === 'asc') ? 'desc' : 'asc';
+        $this->sortField = $field;
         $this->resetPage();
     }
 

@@ -10,6 +10,8 @@ class SaleList extends Component {
     public $sortField = 'created_at', $sortDirection = 'desc';
     public $showDeleteModal = false, $deleteSaleId = null, $deleteSaleInvoice = '';
 
+    protected array $allowedSortFields = ['created_at', 'invoice_number', 'total_amount', 'amount_paid', 'status', 'payment_type'];
+
     public function updatingSearch() { $this->resetPage(); }
     public function updatingFilterStatus() { $this->resetPage(); }
     public function updatingFilterDate() { $this->resetPage(); }
@@ -17,12 +19,9 @@ class SaleList extends Component {
     public function updatingFilterKasir() { $this->resetPage(); }
 
     public function sort($field) {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
+        if (!in_array($field, $this->allowedSortFields, true)) return;
+        $this->sortDirection = ($this->sortField === $field && $this->sortDirection === 'asc') ? 'desc' : 'asc';
+        $this->sortField = $field;
         $this->resetPage();
     }
 

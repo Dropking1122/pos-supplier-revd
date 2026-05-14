@@ -124,6 +124,14 @@ class BackupController extends Controller
             return back()->with('toast_error', 'Hanya file .sql yang diizinkan untuk diimport.');
         }
 
+        // Validasi MIME type secara server-side
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($file->getPathname());
+        $allowedMimes = ['text/plain', 'application/sql', 'application/x-sql', 'application/octet-stream'];
+        if (!in_array($mime, $allowedMimes, true)) {
+            return back()->with('toast_error', 'Tipe file tidak valid. Hanya file SQL teks yang diizinkan.');
+        }
+
         $sqlContent = file_get_contents($file->getPathname());
 
         if (empty(trim($sqlContent))) {

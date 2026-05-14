@@ -18,15 +18,14 @@ class CustomerList extends Component {
 
     protected $rules = ['name'=>'required|string|max:255','phone'=>'nullable|string|max:50','address'=>'nullable|string'];
 
+    protected array $allowedSortFields = ['name', 'phone', 'address', 'created_at'];
+
     public function updatingSearch() { $this->resetPage(); }
 
     public function sort($field) {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
+        if (!in_array($field, $this->allowedSortFields, true)) return;
+        $this->sortDirection = ($this->sortField === $field && $this->sortDirection === 'asc') ? 'desc' : 'asc';
+        $this->sortField = $field;
         $this->resetPage();
     }
 
