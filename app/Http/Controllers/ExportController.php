@@ -18,7 +18,7 @@ class ExportController extends Controller
 
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Invoice');
+        $sheet->setTitle('Laporan (' . $sale->created_at->format('d-m-Y') . ')');
 
         // ── Baris 1: Info perusahaan & invoice ───────────────────────────
         $sheet->setCellValue('A1', $setting->company_name);
@@ -167,18 +167,6 @@ class ExportController extends Controller
             $sheet->getColumnDimension($col)->setWidth($width);
         }
 
-        // ── Keterangan kolom ─────────────────────────────────────────────
-        $this->writeLegend($sheet, $sumRow + 4, 'L', [
-            ['E', 'Harga Beli',          'Modal / HPP (Harga Pokok Penjualan) per unit barang. Harga saat toko membeli barang dari supplier.'],
-            ['F', 'Harga Jual',          'Harga jual aktual per unit pada saat transaksi ini terjadi (bisa harga grosir atau harga ecer, tergantung tipe penjualan).'],
-            ['G', 'Stok Awal',           'Perkiraan stok sebelum transaksi ini diproses. Rumus: Sisa Stok + Stok Terjual.'],
-            ['H', 'Sisa Stok',           'Jumlah stok setelah transaksi selesai. Rumus: Stok Awal − Stok Terjual.'],
-            ['I', 'Stok Terjual',        'Jumlah unit barang yang dibeli customer dalam transaksi ini.'],
-            ['J', 'Jumlah Total Modal',  'Total biaya pengadaan untuk item ini. Rumus: Harga Beli × Stok Terjual.'],
-            ['K', 'Jumlah Total Jual',   'Total pendapatan dari item ini (= Subtotal). Rumus: Harga Jual × Stok Terjual.'],
-            ['L', 'Keuntungan',          'Profit bersih per item dalam transaksi. Rumus: Jumlah Total Jual − Jumlah Total Modal. Nilai minus berarti rugi.'],
-        ]);
-
         // ── Sheet 2: Info Transaksi ───────────────────────────────────────
         $sheet2 = $spreadsheet->createSheet();
         $sheet2->setTitle('Info Transaksi');
@@ -206,11 +194,28 @@ class ExportController extends Controller
         $sheet2->getColumnDimension('A')->setWidth(18);
         $sheet2->getColumnDimension('B')->setWidth(30);
 
+        // ── Sheet 3: Keterangan ───────────────────────────────────────────
+        $kSheet = $spreadsheet->createSheet();
+        $kSheet->setTitle('Keterangan');
+        $kSheet->getColumnDimension('A')->setWidth(8);
+        $kSheet->getColumnDimension('B')->setWidth(24);
+        $kSheet->getColumnDimension('C')->setWidth(90);
+        $this->writeLegend($kSheet, 1, 'C', [
+            ['E', 'Harga Beli',          'Modal / HPP (Harga Pokok Penjualan) per unit barang. Harga saat toko membeli barang dari supplier.'],
+            ['F', 'Harga Jual',          'Harga jual aktual per unit pada saat transaksi ini terjadi (bisa harga grosir atau harga ecer, tergantung tipe penjualan).'],
+            ['G', 'Stok Awal',           'Perkiraan stok sebelum transaksi ini diproses. Rumus: Sisa Stok + Stok Terjual.'],
+            ['H', 'Sisa Stok',           'Jumlah stok setelah transaksi selesai. Rumus: Stok Awal − Stok Terjual.'],
+            ['I', 'Stok Terjual',        'Jumlah unit barang yang dibeli customer dalam transaksi ini.'],
+            ['J', 'Jumlah Total Modal',  'Total biaya pengadaan untuk item ini. Rumus: Harga Beli × Stok Terjual.'],
+            ['K', 'Jumlah Total Jual',   'Total pendapatan dari item ini (= Subtotal). Rumus: Harga Jual × Stok Terjual.'],
+            ['L', 'Keuntungan',          'Profit bersih per item dalam transaksi. Rumus: Jumlah Total Jual − Jumlah Total Modal. Nilai minus berarti rugi.'],
+        ]);
+
         $spreadsheet->setActiveSheetIndex(0);
 
         // ── Output ────────────────────────────────────────────────────────
-        $customerSlug = $sale->customer ? \Illuminate\Support\Str::slug($sale->customer->name) : 'umum';
-        $filename = 'invoice-' . $customerSlug . '-' . $sale->invoice_number . '.xlsx';
+        $customerSlug = $sale->customer ? \Illuminate\Support\Str::slug($sale->customer->name) : 'UMUM';
+        $filename = strtoupper('LAPORAN-' . $customerSlug . '-' . $sale->invoice_number . '-' . $sale->created_at->format('d-m-Y')) . '.xlsx';
         $writer   = new Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
         $writer->save($tempFile);
@@ -554,7 +559,16 @@ class ExportController extends Controller
         $sales    = $this->getSales($request);
         $setting  = Setting::getSettings();
         $period   = $this->getPeriodLabel($request);
-        $filename = "laporan-penjualan-{$period}.xlsx";
+        if ($request->type === 'daily' && $request->date) {
+            $periodFile = \Carbon\Carbon::parse($request->date)->format('d-m-Y');
+        } elseif ($request->type === 'monthly' && $request->month) {
+            $periodFile = \Carbon\Carbon::createFromFormat('Y-m', $request->month)->format('m-Y');
+        } elseif ($request->type === 'yearly' && $request->year) {
+            $periodFile = $request->year;
+        } else {
+            $periodFile = now()->format('d-m-Y');
+        }
+        $filename = 'LAPORAN-PENJUALAN-' . $periodFile . '.xlsx';
 
         $totalRevenue = $sales->sum('total_amount');
         $totalProfit  = $sales->sum(
@@ -568,7 +582,7 @@ class ExportController extends Controller
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Laporan Penjualan');
+        $sheet->setTitle('Laporan (' . now()->format('d-m-Y') . ')');
 
         $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
 
@@ -753,7 +767,7 @@ class ExportController extends Controller
         });
 
         $label    = \Carbon\Carbon::parse($date)->locale('id')->isoFormat('D MMMM Y');
-        $filename = "stock-harian-{$date}.xlsx";
+        $filename = 'STOCK-HARIAN-' . \Carbon\Carbon::parse($date)->format('d-m-Y') . '.xlsx';
 
         $total_terjual    = $products->sum('terjual');
         $tidak_terjual    = $products->where('terjual', 0)->count();
@@ -763,7 +777,7 @@ class ExportController extends Controller
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Stock Harian');
+        $sheet->setTitle('Laporan (' . \Carbon\Carbon::parse($date)->format('d-m-Y') . ')');
 
         $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
 
