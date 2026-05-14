@@ -11,6 +11,11 @@ class CustomerList extends Component {
     public $name = '', $phone = '', $address = '';
     public $sortField = 'name', $sortDirection = 'asc';
 
+    public $showDeleteModal = false;
+    public $deleteId = null;
+    public $deleteName = '';
+    public $deletePhone = '';
+
     protected $rules = ['name'=>'required|string|max:255','phone'=>'nullable|string|max:50','address'=>'nullable|string'];
 
     public function updatingSearch() { $this->resetPage(); }
@@ -41,6 +46,20 @@ class CustomerList extends Component {
             session()->flash('message','Customer berhasil ditambahkan!');
         }
         $this->showModal = false;
+    }
+    public function confirmDelete($id) {
+        $c = Customer::findOrFail($id);
+        $this->deleteId    = $id;
+        $this->deleteName  = $c->name;
+        $this->deletePhone = $c->phone ?? '-';
+        $this->showDeleteModal = true;
+    }
+    public function deleteCustomer() {
+        if (!$this->deleteId) return;
+        Customer::findOrFail($this->deleteId)->delete();
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
+        $this->dispatch('toast', type: 'success', message: 'Customer "'.$this->deleteName.'" berhasil dihapus.');
     }
     public function delete($id) { Customer::findOrFail($id)->delete(); session()->flash('message','Customer dihapus!'); }
     public function render() {

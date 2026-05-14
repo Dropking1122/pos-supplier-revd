@@ -177,7 +177,7 @@
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     Edit
                                 </button>
-                                <button wire:click="delete({{ $product->id }})" wire:confirm="Yakin hapus barang ini?"
+                                <button wire:click="confirmDelete({{ $product->id }})"
                                         class="inline-flex items-center gap-1.5 text-red-700 bg-red-100 hover:bg-red-200 border border-red-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     Hapus
@@ -225,7 +225,7 @@
                     <button wire:click="openEdit({{ $product->id }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </button>
-                    <button wire:click="delete({{ $product->id }})" wire:confirm="Yakin hapus barang ini?" class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 bg-red-50 hover:bg-red-100 transition-colors">
+                    <button wire:click="confirmDelete({{ $product->id }})" class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 bg-red-50 hover:bg-red-100 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>
@@ -488,6 +488,63 @@
                     <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-colors">Simpan</button>
                 </div>
             </form>
+        </div>
+    </div>
+    @endif
+
+    {{-- Delete Confirmation Modal --}}
+    @if($showDeleteModal)
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-gray-800">Hapus Barang?</h3>
+                        <p class="text-sm text-gray-500 mt-0.5">{{ $deleteNama }}</p>
+                    </div>
+                </div>
+
+                {{-- Detail barang --}}
+                <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4 grid grid-cols-2 gap-3">
+                    <div>
+                        <p class="text-[10px] uppercase font-semibold text-gray-400 mb-0.5">Kode Barang</p>
+                        <p class="text-sm font-mono font-bold text-gray-700">{{ $deleteKode }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase font-semibold text-gray-400 mb-0.5">Stok Saat Ini</p>
+                        <p class="text-sm font-bold {{ $deleteStok <= 0 ? 'text-red-600' : 'text-gray-700' }}">{{ $deleteStok }} unit</p>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 text-sm text-amber-800 space-y-1">
+                    <p class="font-semibold flex items-center gap-1.5">
+                        <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                        Tindakan ini tidak dapat dibatalkan!
+                    </p>
+                    <ul class="list-disc list-inside text-amber-700 text-xs space-y-0.5 mt-1">
+                        <li>Data barang akan dihapus permanen dari sistem</li>
+                        <li>Riwayat penjualan yang menggunakan barang ini tetap tersimpan</li>
+                    </ul>
+                </div>
+
+                <div class="flex gap-3">
+                    <button wire:click="$set('showDeleteModal', false)"
+                            class="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                        Batal
+                    </button>
+                    <button wire:click="deleteProduct" wire:loading.attr="disabled"
+                            class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2">
+                        <span wire:loading.remove wire:target="deleteProduct">
+                            <svg class="w-4 h-4 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            Ya, Hapus Barang
+                        </span>
+                        <span wire:loading wire:target="deleteProduct">Menghapus...</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     @endif

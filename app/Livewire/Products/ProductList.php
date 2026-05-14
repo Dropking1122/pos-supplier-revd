@@ -24,6 +24,12 @@ class ProductList extends Component {
     public $importErrors = [];
     public $importSuccess = 0;
 
+    public $showDeleteModal = false;
+    public $deleteId = null;
+    public $deleteNama = '';
+    public $deleteKode = '';
+    public $deleteStok = 0;
+
     protected $queryString = ['filterLowStock' => ['except' => false]];
 
     protected $rules = [
@@ -115,6 +121,23 @@ class ProductList extends Component {
             $this->dispatch('toast', type: 'success', message: 'Produk '.$this->nama_barang.' berhasil ditambahkan.');
         }
         $this->showModal = false;
+    }
+    public function confirmDelete($id) {
+        $p = Product::findOrFail($id);
+        $this->deleteId   = $id;
+        $this->deleteNama = $p->nama_barang;
+        $this->deleteKode = $p->kode_barang;
+        $this->deleteStok = $p->kuantitas;
+        $this->showDeleteModal = true;
+    }
+    public function deleteProduct() {
+        if (!$this->deleteId) return;
+        $p = Product::findOrFail($this->deleteId);
+        $nama = $p->nama_barang;
+        $p->delete();
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
+        $this->dispatch('toast', type: 'success', message: 'Produk "'.$nama.'" berhasil dihapus.');
     }
     public function delete($id) {
         $p = Product::findOrFail($id);
