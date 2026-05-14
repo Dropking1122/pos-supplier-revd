@@ -323,7 +323,7 @@
     x-data="{
         show: false,
         deferredPrompt: null,
-        installed: false,
+        installing: false,
         init() {
             if (window.matchMedia('(display-mode: standalone)').matches) return;
             window.addEventListener('beforeinstallprompt', e => {
@@ -333,14 +333,15 @@
             });
             window.addEventListener('appinstalled', () => {
                 this.show = false;
-                this.installed = true;
             });
         },
         async install() {
             if (!this.deferredPrompt) return;
+            this.installing = true;
             this.deferredPrompt.prompt();
             const { outcome } = await this.deferredPrompt.userChoice;
             this.deferredPrompt = null;
+            this.installing = false;
             this.show = false;
         },
         dismiss() {
@@ -354,36 +355,89 @@
         init();
     "
     x-show="show"
-    x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0 translate-y-4"
+    x-transition:enter="transition ease-out duration-400"
+    x-transition:enter-start="opacity-0 translate-y-6"
     x-transition:enter-end="opacity-100 translate-y-0"
     x-transition:leave="transition ease-in duration-200"
     x-transition:leave-start="opacity-100 translate-y-0"
-    x-transition:leave-end="opacity-0 translate-y-4"
-    class="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-80 z-[9998]"
+    x-transition:leave-end="opacity-0 translate-y-6"
+    class="fixed bottom-4 left-3 right-3 md:left-auto md:right-5 md:w-[360px] z-[9998]"
     style="display:none;"
 >
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-4 flex items-center gap-3">
-        <div class="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
-        </div>
-        <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-white leading-tight">Install Aplikasi</p>
-            <p class="text-xs text-slate-400 leading-snug mt-0.5">Akses lebih cepat seperti aplikasi native</p>
-        </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-            <button @click="install()"
-                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors">
-                Install
-            </button>
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+
+        {{-- Header strip --}}
+        <div class="bg-indigo-600 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-white leading-none">Pasang di HP kamu</p>
+                    <p class="text-[11px] text-indigo-200 mt-0.5">Gratis · Tidak perlu Play Store</p>
+                </div>
+            </div>
             <button @click="dismiss()"
-                    class="p-1.5 text-slate-500 hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-800">
+                    class="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                    title="Tutup">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="px-4 py-3">
+            {{-- Benefit list --}}
+            <ul class="space-y-2 mb-4">
+                <li class="flex items-center gap-2.5 text-sm text-gray-700">
+                    <span class="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                    Buka langsung dari layar utama HP
+                </li>
+                <li class="flex items-center gap-2.5 text-sm text-gray-700">
+                    <span class="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                    Tampilan penuh tanpa bar browser
+                </li>
+                <li class="flex items-center gap-2.5 text-sm text-gray-700">
+                    <span class="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                    Lebih cepat &amp; bisa dipakai saat sinyal lemah
+                </li>
+            </ul>
+
+            {{-- Action buttons --}}
+            <div class="flex gap-2">
+                <button @click="install()" :disabled="installing"
+                        class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors">
+                    <svg x-show="!installing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <svg x-show="installing" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span x-text="installing ? 'Memasang...' : 'Pasang Sekarang'">Pasang Sekarang</span>
+                </button>
+                <button @click="dismiss()"
+                        class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-xl transition-colors">
+                    Nanti
+                </button>
+            </div>
         </div>
     </div>
 </div>
