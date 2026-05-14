@@ -13,10 +13,10 @@ class Dashboard extends Component {
             ->value('profit') ?? 0;
         $totalDebt   = Debt::where('status','belum_lunas')->sum('sisa_hutang');
         $lowStockProducts = Product::whereColumn('kuantitas','<=','stock_minimum')->get();
-        $monthlySales = Sale::selectRaw("MONTH(created_at) as month, SUM(total_amount) as total")
-            ->whereYear('created_at', now()->year)
-            ->groupByRaw("MONTH(created_at)")
-            ->orderByRaw("MONTH(created_at)")
+        $monthlySales = Sale::selectRaw("CAST(strftime('%m', created_at) AS INTEGER) as month, SUM(total_amount) as total")
+            ->whereRaw("strftime('%Y', created_at) = ?", [now()->year])
+            ->groupByRaw("strftime('%m', created_at)")
+            ->orderByRaw("strftime('%m', created_at)")
             ->pluck('total', 'month');
         $recentSales = Sale::with('customer')->latest()->take(5)->get();
         $topProducts = Product::select('products.*')
