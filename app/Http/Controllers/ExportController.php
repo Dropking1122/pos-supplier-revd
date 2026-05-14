@@ -581,8 +581,15 @@ class ExportController extends Controller
         $sheet->getStyle('A2:A4')->getFont()->setSize(10);
 
         // ── Ringkasan ──────────────────────────────
-        $sheet->setCellValue('A6', '=== RINGKASAN ===');
-        $sheet->getStyle('A6')->getFont()->setBold(true);
+        $sheet->setCellValue('A6', 'RINGKASAN');
+        $sheet->mergeCells('A6:B6');
+        $sheet->getStyle('A6:B6')->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1e293b']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT,
+                            'vertical'   => Alignment::VERTICAL_CENTER, 'indent' => 1],
+        ]);
+        $sheet->getRowDimension(6)->setRowHeight(20);
         $summaryData = [
             ['Total Penjualan', $totalRevenue],
             ['Total Profit',    $totalProfit],
@@ -690,13 +697,13 @@ class ExportController extends Controller
             $sheet->getColumnDimension($col)->setWidth($w);
         }
 
-        if ($setting->invoice_footer) {
-            $sheet->setCellValue("A" . ($rowIdx + 2), $setting->invoice_footer);
-        }
-
-        // ── Keterangan kolom ─────────────────────────────────────────────
-        $legendStart = $rowIdx + ($setting->invoice_footer ? 4 : 3);
-        $this->writeLegend($sheet, $legendStart, 'N', [
+        // ── Sheet Keterangan (sheet terpisah) ─────────────────────────────
+        $kSheet = $spreadsheet->createSheet();
+        $kSheet->setTitle('Keterangan');
+        $kSheet->getColumnDimension('A')->setWidth(8);
+        $kSheet->getColumnDimension('B')->setWidth(24);
+        $kSheet->getColumnDimension('C')->setWidth(90);
+        $this->writeLegend($kSheet, 1, 'C', [
             ['G', 'Total (Rp)',           'Total nilai penjualan yang ditagihkan ke customer. Nominal sebelum dikurangi modal.'],
             ['H', 'Modal / HPP (Rp)',     'Total Harga Pokok Penjualan semua item. Rumus: Σ (Harga Beli × Qty) untuk setiap produk dalam transaksi.'],
             ['I', 'Profit (Rp)',          'Keuntungan bersih transaksi. Rumus: Total Penjualan − Modal (HPP). Nilai minus berarti rugi.'],
@@ -705,7 +712,10 @@ class ExportController extends Controller
             ['L', 'Jatuh Tempo',          'Tanggal batas pembayaran untuk transaksi tempo/kredit. Kosong (-) jika tipe pembayaran adalah cash.'],
             ['M', 'Sudah Dibayar (Rp)',   'Total nominal yang sudah diterima dari customer, termasuk semua riwayat cicilan yang tercatat.'],
             ['N', 'Sisa Hutang (Rp)',     'Sisa tagihan yang belum dibayar. Rumus: Total − Sudah Dibayar. Bernilai 0 jika status sudah Lunas.'],
-        ]);
+        ], $setting->invoice_footer ?: '');
+
+        // Kembali ke sheet utama
+        $spreadsheet->setActiveSheetIndex(0);
 
         $writer   = new Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
@@ -765,8 +775,15 @@ class ExportController extends Controller
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         // ── Ringkasan ──────────────────────────────
-        $sheet->setCellValue('A6', '=== RINGKASAN ===');
-        $sheet->getStyle('A6')->getFont()->setBold(true);
+        $sheet->setCellValue('A6', 'RINGKASAN');
+        $sheet->mergeCells('A6:B6');
+        $sheet->getStyle('A6:B6')->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1e293b']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT,
+                            'vertical'   => Alignment::VERTICAL_CENTER, 'indent' => 1],
+        ]);
+        $sheet->getRowDimension(6)->setRowHeight(20);
         $summaryRows = [
             ['Total Produk', $products->count()],
             ['Total Terjual (unit)', $total_terjual],
@@ -857,8 +874,13 @@ class ExportController extends Controller
             $sheet->getColumnDimension($col)->setWidth($w);
         }
 
-        // ── Keterangan kolom ─────────────────────────────────────────────
-        $this->writeLegend($sheet, $rowIdx + 2, 'N', [
+        // ── Sheet Keterangan (sheet terpisah) ─────────────────────────────
+        $kSheet = $spreadsheet->createSheet();
+        $kSheet->setTitle('Keterangan');
+        $kSheet->getColumnDimension('A')->setWidth(8);
+        $kSheet->getColumnDimension('B')->setWidth(20);
+        $kSheet->getColumnDimension('C')->setWidth(90);
+        $this->writeLegend($kSheet, 1, 'C', [
             ['E', 'Stock Awal',    'Perkiraan jumlah stok di awal hari. Rumus: Sisa Stok saat ini + Total Terjual hari ini. (Estimasi — bisa berbeda jika ada transaksi setelah laporan dicetak.)'],
             ['F', 'Terjual',       'Total unit barang yang berhasil terjual sepanjang tanggal laporan ini.'],
             ['G', 'Sisa Stock',    'Jumlah stok yang masih tersisa saat laporan ini dicetak. Rumus: Stock Awal − Terjual.'],
@@ -870,6 +892,9 @@ class ExportController extends Controller
             ['M', 'Keuntungan',    'Profit bersih dari penjualan barang ini. Rumus: Pendapatan − (Harga Modal × Qty Terjual). Bernilai 0 jika tidak ada penjualan hari ini.'],
             ['N', 'Status',        'Terjual = ada penjualan hari ini  |  Stok Menipis = stok ≤ minimum, perlu restock  |  Terjual · Low Stock = terjual tapi stok sudah menipis  |  Tidak Terjual = tidak ada transaksi hari ini.'],
         ]);
+
+        // Kembali ke sheet utama
+        $spreadsheet->setActiveSheetIndex(0);
 
         $writer   = new Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
