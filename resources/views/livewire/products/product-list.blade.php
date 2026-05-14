@@ -166,15 +166,23 @@
                         </td>
                         <td class="px-4 py-3 text-right text-gray-700 whitespace-nowrap tabular-nums">Rp {{ number_format($product->harga_ecer,0,',','.') }}</td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">
-                            <button wire:click="openRestock({{ $product->id }})" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-green-600 hover:bg-green-50 transition-colors mr-1" title="Restock">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            </button>
-                            <button wire:click="openEdit({{ $product->id }})" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors mr-1" title="Edit">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-                            <button wire:click="delete({{ $product->id }})" wire:confirm="Yakin hapus barang ini?" class="inline-flex items-center justify-center w-7 h-7 rounded-md text-red-500 hover:bg-red-50 transition-colors" title="Hapus">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button wire:click="openRestock({{ $product->id }})"
+                                        class="inline-flex items-center gap-1.5 text-green-700 bg-green-100 hover:bg-green-200 border border-green-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    Restock
+                                </button>
+                                <button wire:click="openEdit({{ $product->id }})"
+                                        class="inline-flex items-center gap-1.5 text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    Edit
+                                </button>
+                                <button wire:click="delete({{ $product->id }})" wire:confirm="Yakin hapus barang ini?"
+                                        class="inline-flex items-center gap-1.5 text-red-700 bg-red-100 hover:bg-red-200 border border-red-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    Hapus
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty

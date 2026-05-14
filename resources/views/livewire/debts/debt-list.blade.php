@@ -54,9 +54,18 @@
                                 {{ $debt->status === 'lunas' ? 'Lunas' : 'Belum Lunas' }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-4 py-3 text-center whitespace-nowrap">
                             @if($debt->status === 'belum_lunas')
-                            <button wire:click="openPay({{ $debt->id }})" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700">💰 Bayar</button>
+                            <button wire:click="openPay({{ $debt->id }})"
+                                    class="inline-flex items-center gap-1.5 text-green-700 bg-green-100 hover:bg-green-200 border border-green-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                Bayar
+                            </button>
+                            @else
+                            <span class="inline-flex items-center gap-1 text-green-600 text-xs font-semibold">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Lunas
+                            </span>
                             @endif
                         </td>
                     </tr>
