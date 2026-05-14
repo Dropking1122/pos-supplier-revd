@@ -444,13 +444,7 @@ class ExportController extends Controller
         $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
 
         // ── Company Header ──────────────────────────
-        $judulLaporan = match($request->type) {
-            'daily'   => 'LAPORAN PENJUALAN HARIAN',
-            'monthly' => 'LAPORAN PENJUALAN BULANAN',
-            'yearly'  => 'LAPORAN PENJUALAN TAHUNAN',
-            default   => 'LAPORAN PENJUALAN',
-        };
-        $sheet->setCellValue('A1', $judulLaporan);
+        $sheet->setCellValue('A1', 'LAPORAN PENJUALAN');
         $sheet->setCellValue('A2', 'Toko: ' . $setting->company_name);
         $sheet->setCellValue('A3', 'Periode: ' . $this->getPeriodDisplay($request));
         $sheet->setCellValue('A4', 'Dicetak: ' . now()->format('d/m/Y H:i'));
