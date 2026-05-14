@@ -1,46 +1,97 @@
 <div>
-    <div class="flex flex-col sm:flex-row gap-3 mb-3">
-        <input wire:model.live="search" type="text" placeholder="Cari invoice / customer..." class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <select wire:model.live="filterCustomer" class="border border-gray-300 rounded-lg pl-3 pr-9 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none bg-white" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;">
-            <option value="">Semua Customer</option>
-            @foreach($customers as $c)
-                <option value="{{ $c->id }}">{{ $c->name }}</option>
-            @endforeach
-        </select>
-        <select wire:model.live="filterStatus" class="border border-gray-300 rounded-lg pl-3 pr-9 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none bg-white" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;">
-            <option value="">Semua Status</option>
-            <option value="paid">Lunas</option>
-            <option value="partial">Sebagian</option>
-            <option value="unpaid">Belum Bayar</option>
-        </select>
-        <input wire:model.live="filterDate" type="date" style="color-scheme: light" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800">
-        <a href="{{ route('sales.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 whitespace-nowrap flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Transaksi Baru
-        </a>
-    </div>
+    {{-- Filter Bar --}}
+    <div class="flex flex-col gap-2 mb-3">
+        {{-- Row 1: Search + Tombol Baru --}}
+        <div class="flex gap-2">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                <input wire:model.live="search" type="text" placeholder="Cari invoice / customer..."
+                       class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <a href="{{ route('sales.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700 whitespace-nowrap flex items-center gap-1.5 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Transaksi Baru
+            </a>
+        </div>
 
-    @if($filterCustomer)
-    <div class="mb-3 flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-lg">
-        <div class="flex items-center gap-2 text-emerald-800 text-sm">
-            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            Transaksi: <strong>{{ $customers->firstWhere('id', $filterCustomer)?->name }}</strong>
+        {{-- Row 2: Filters --}}
+        <div class="flex flex-wrap gap-2">
+            @php $selectClass = 'border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none bg-white'; $selectStyle = 'background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;'; @endphp
+
+            {{-- Filter Customer --}}
+            <select wire:model.live="filterCustomer" class="{{ $selectClass }}" style="{{ $selectStyle }}">
+                <option value="">Semua Customer</option>
+                @foreach($customers as $c)
+                    <option value="{{ $c->id }}">{{ $c->name }}</option>
+                @endforeach
+            </select>
+
+            {{-- Filter Kasir (Admin only) --}}
+            @if($isAdmin)
+            <select wire:model.live="filterKasir" class="{{ $selectClass }} {{ $filterKasir ? 'border-violet-400 bg-violet-50 text-violet-700' : '' }}" style="{{ $selectStyle }}">
+                <option value="">Semua Kasir</option>
+                @foreach($kasirList as $k)
+                    <option value="{{ $k->id }}">{{ $k->name }} {{ $k->is_admin ? '(Admin)' : '(Kasir)' }}</option>
+                @endforeach
+            </select>
+            @endif
+
+            {{-- Filter Status --}}
+            <select wire:model.live="filterStatus" class="{{ $selectClass }}" style="{{ $selectStyle }}">
+                <option value="">Semua Status</option>
+                <option value="paid">Lunas</option>
+                <option value="partial">Sebagian</option>
+                <option value="unpaid">Belum Bayar</option>
+            </select>
+
+            {{-- Filter Tanggal --}}
+            <input wire:model.live="filterDate" type="date" style="color-scheme: light; {{ $selectStyle }}"
+                   class="{{ $selectClass }} text-gray-800 {{ $filterDate ? 'border-indigo-400 bg-indigo-50' : '' }}">
+
+            {{-- Reset Filters --}}
+            @if($filterCustomer || $filterKasir || $filterStatus || $filterDate || $search)
+            <button wire:click="$set('filterCustomer',''); $set('filterKasir',''); $set('filterStatus',''); $set('filterDate',''); $set('search','')"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                Reset Filter
+            </button>
+            @endif
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('sales.export-customer', ['customer_id' => $filterCustomer]) }}"
-               target="_blank"
-               class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Export Excel
-            </a>
-            <a href="{{ route('sales.export-customer-pdf', ['customer_id' => $filterCustomer]) }}"
-               target="_blank"
-               class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Export PDF
-            </a>
+
+        {{-- Active filter info banners --}}
+        @if($filterKasir && $isAdmin)
+        @php $activeKasir = $kasirList->firstWhere('id', $filterKasir); @endphp
+        <div class="flex items-center gap-2 bg-violet-50 border border-violet-200 px-4 py-2.5 rounded-lg text-sm text-violet-800">
+            <svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Menampilkan transaksi oleh kasir: <strong class="ml-1">{{ $activeKasir?->name }}</strong>
+            <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold {{ $activeKasir?->is_admin ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700' }}">
+                {{ $activeKasir?->is_admin ? 'Admin' : 'Kasir' }}
+            </span>
+            <span class="ml-auto text-violet-500 text-xs">{{ $sales->total() }} transaksi</span>
         </div>
+        @endif
+
+        @if($filterCustomer)
+        <div class="flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-lg">
+            <div class="flex items-center gap-2 text-emerald-800 text-sm">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                Transaksi: <strong class="ml-1">{{ $customers->firstWhere('id', $filterCustomer)?->name }}</strong>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('sales.export-customer', ['customer_id' => $filterCustomer]) }}" target="_blank"
+                   class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Export Excel
+                </a>
+                <a href="{{ route('sales.export-customer-pdf', ['customer_id' => $filterCustomer]) }}" target="_blank"
+                   class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    Export PDF
+                </a>
+            </div>
+        </div>
+        @endif
     </div>
-    @endif
 
     @php
         $sortIcon = fn($f) => $sortField === $f ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕';

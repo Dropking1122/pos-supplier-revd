@@ -1,11 +1,12 @@
 <?php
 namespace App\Livewire\Sales;
 use App\Models\{Sale, Setting, Customer, Debt, DebtPayment};
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 class SaleList extends Component {
     use WithPagination;
-    public $search = '', $filterStatus = '', $filterDate = '', $filterCustomer = '';
+    public $search = '', $filterStatus = '', $filterDate = '', $filterCustomer = '', $filterKasir = '';
     public $sortField = 'created_at', $sortDirection = 'desc';
     public $showDeleteModal = false, $deleteSaleId = null, $deleteSaleInvoice = '';
 
@@ -13,6 +14,7 @@ class SaleList extends Component {
     public function updatingFilterStatus() { $this->resetPage(); }
     public function updatingFilterDate() { $this->resetPage(); }
     public function updatingFilterCustomer() { $this->resetPage(); }
+    public function updatingFilterKasir() { $this->resetPage(); }
 
     public function sort($field) {
         if ($this->sortField === $field) {
@@ -66,17 +68,21 @@ class SaleList extends Component {
     }
 
     public function render() {
-        $isAdmin  = auth()->user()->is_admin;
+        $isAdmin   = auth()->user()->is_admin;
         $customers = Customer::orderBy('name')->get();
+        $kasirList = $isAdmin ? User::orderBy('name')->get() : collect();
+
         $sales = Sale::with('customer', 'user')
             ->when(!$isAdmin, fn($q) => $q->where('user_id', auth()->id()))
             ->when($this->search, fn($q)=>$q->where('invoice_number','like',"%{$this->search}%")->orWhereHas('customer',fn($q2)=>$q2->where('name','like',"%{$this->search}%")))
             ->when($this->filterStatus, fn($q)=>$q->where('status',$this->filterStatus))
             ->when($this->filterDate, fn($q)=>$q->whereDate('created_at',$this->filterDate))
             ->when($this->filterCustomer, fn($q)=>$q->where('customer_id',$this->filterCustomer))
+            ->when($isAdmin && $this->filterKasir, fn($q)=>$q->where('user_id',$this->filterKasir))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
+
         $setting = Setting::getSettings();
-        return view('livewire.sales.sale-list', compact('sales','setting','customers','isAdmin'));
+        return view('livewire.sales.sale-list', compact('sales','setting','customers','isAdmin','kasirList'));
     }
 }
