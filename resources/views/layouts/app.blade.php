@@ -333,6 +333,7 @@
             });
             window.addEventListener('appinstalled', () => {
                 this.show = false;
+                sessionStorage.setItem('pwa-shown', '1');
             });
         },
         async install() {
@@ -343,15 +344,18 @@
             this.deferredPrompt = null;
             this.installing = false;
             this.show = false;
+            sessionStorage.setItem('pwa-shown', '1');
         },
-        dismiss() {
+        dismiss(permanent) {
             this.show = false;
-            localStorage.setItem('pwa-dismissed', Date.now());
+            sessionStorage.setItem('pwa-shown', '1');
+            if (permanent) localStorage.setItem('pwa-dismissed', Date.now());
         }
     }"
     x-init="
-        const dismissed = localStorage.getItem('pwa-dismissed');
-        if (dismissed && (Date.now() - parseInt(dismissed)) < 7 * 24 * 60 * 60 * 1000) return;
+        if (sessionStorage.getItem('pwa-shown')) return;
+        const ts = localStorage.getItem('pwa-dismissed');
+        if (ts && (Date.now() - parseInt(ts)) < 7 * 24 * 60 * 60 * 1000) return;
         init();
     "
     x-show="show"
@@ -369,24 +373,57 @@
         {{-- Header strip --}}
         <div class="bg-indigo-600 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {{-- Logo toko atau fallback icon --}}
+                @if($setting->company_logo)
+                <img src="{{ asset($setting->company_logo) }}"
+                     alt="{{ $setting->company_name }}"
+                     class="w-9 h-9 rounded-xl object-contain bg-white/10 p-0.5 shrink-0">
+                @else
+                <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                              d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
+                @endif
                 <div>
                     <p class="text-sm font-bold text-white leading-none">Pasang di HP kamu</p>
                     <p class="text-[11px] text-indigo-200 mt-0.5">Gratis · Tidak perlu Play Store</p>
                 </div>
             </div>
-            <button @click="dismiss()"
-                    class="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
-                    title="Tutup">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
+            {{-- Tombol tutup dengan dropdown opsi --}}
+            <div x-data="{ closeMenu: false }" class="relative">
+                <button @click="closeMenu = !closeMenu"
+                        class="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                        title="Tutup">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                <div x-show="closeMenu"
+                     @click.outside="closeMenu = false"
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     class="absolute right-0 top-7 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-10"
+                     style="display:none;">
+                    <button @click="dismiss(false); closeMenu = false"
+                            class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                        </svg>
+                        Sembunyikan dulu
+                    </button>
+                    <div class="border-t border-gray-100"></div>
+                    <button @click="dismiss(true); closeMenu = false"
+                            class="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                        Jangan tampilkan lagi
+                    </button>
+                </div>
+            </div>
         </div>
 
         {{-- Body --}}
