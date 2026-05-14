@@ -1,3 +1,159 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+   Active when <html class="dark"> is set.
+   Strategy: remap common Tailwind utility classes so all Livewire
+   views get dark mode without touching each file individually.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Backgrounds ──────────────────────────────────────────────── */
+.dark .bg-white          { background-color: #1e293b; }
+.dark .bg-gray-50        { background-color: #1e293b; }
+.dark .bg-gray-100       { background-color: #0f172a; }
+.dark .bg-gray-200       { background-color: #334155; }
+
+/* Light colour tints used for icon badges / alert boxes */
+.dark .bg-indigo-50      { background-color: rgba(99,102,241,0.12); }
+.dark .bg-indigo-100     { background-color: rgba(99,102,241,0.18); }
+.dark .bg-green-50       { background-color: rgba(34,197,94,0.10); }
+.dark .bg-green-100      { background-color: rgba(34,197,94,0.16); }
+.dark .bg-emerald-50     { background-color: rgba(16,185,129,0.10); }
+.dark .bg-emerald-100    { background-color: rgba(16,185,129,0.16); }
+.dark .bg-yellow-50      { background-color: rgba(234,179,8,0.10); }
+.dark .bg-amber-50       { background-color: rgba(245,158,11,0.10); }
+.dark .bg-amber-100      { background-color: rgba(245,158,11,0.15); }
+.dark .bg-blue-50        { background-color: rgba(59,130,246,0.10); }
+.dark .bg-blue-100       { background-color: rgba(59,130,246,0.16); }
+.dark .bg-red-50         { background-color: rgba(239,68,68,0.10); }
+.dark .bg-red-100        { background-color: rgba(239,68,68,0.15); }
+.dark .bg-orange-50      { background-color: rgba(249,115,22,0.10); }
+.dark .bg-purple-50      { background-color: rgba(168,85,247,0.10); }
+
+/* ── Text ─────────────────────────────────────────────────────── */
+.dark .text-gray-900     { color: #f1f5f9; }
+.dark .text-gray-800     { color: #f1f5f9; }
+.dark .text-gray-700     { color: #e2e8f0; }
+.dark .text-gray-600     { color: #cbd5e1; }
+.dark .text-gray-500     { color: #94a3b8; }
+.dark .text-gray-400     { color: #64748b; }
+.dark .text-gray-300     { color: #475569; }
+
+/* Coloured text — keep readable & distinct in dark */
+.dark .text-indigo-600   { color: #818cf8; }
+.dark .text-indigo-700   { color: #818cf8; }
+.dark .text-green-600    { color: #4ade80; }
+.dark .text-green-700    { color: #4ade80; }
+.dark .text-green-800    { color: #86efac; }
+.dark .text-emerald-600  { color: #34d399; }
+.dark .text-emerald-700  { color: #34d399; }
+.dark .text-emerald-800  { color: #6ee7b7; }
+.dark .text-red-600      { color: #f87171; }
+.dark .text-red-700      { color: #f87171; }
+.dark .text-red-800      { color: #fca5a5; }
+.dark .text-yellow-600   { color: #facc15; }
+.dark .text-yellow-700   { color: #facc15; }
+.dark .text-yellow-800   { color: #fde047; }
+.dark .text-amber-700    { color: #fbbf24; }
+.dark .text-blue-600     { color: #60a5fa; }
+.dark .text-blue-800     { color: #93c5fd; }
+.dark .text-orange-700   { color: #fb923c; }
+
+/* ── Borders ──────────────────────────────────────────────────── */
+.dark .border-gray-100   { border-color: #334155; }
+.dark .border-gray-200   { border-color: #334155; }
+.dark .border-gray-300   { border-color: #475569; }
+.dark .border-gray-400   { border-color: #64748b; }
+
+.dark .border-indigo-200 { border-color: rgba(99,102,241,0.35); }
+.dark .border-emerald-200 { border-color: rgba(16,185,129,0.35); }
+.dark .border-red-200    { border-color: rgba(239,68,68,0.35); }
+
+/* ── Dividers ─────────────────────────────────────────────────── */
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+
+/* ── Hover states ─────────────────────────────────────────────── */
+.dark .hover\:bg-gray-50:hover   { background-color: #293548; }
+.dark .hover\:bg-gray-100:hover  { background-color: #334155; }
+.dark .hover\:bg-gray-200:hover  { background-color: #475569; }
+.dark .hover\:bg-indigo-50:hover { background-color: rgba(99,102,241,0.15); }
+.dark .hover\:bg-red-50:hover    { background-color: rgba(239,68,68,0.12); }
+
+/* ── Shadows ──────────────────────────────────────────────────── */
+.dark .shadow-sm  { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.45); }
+.dark .shadow     { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.55); }
+.dark .shadow-md  { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.55); }
+.dark .shadow-lg  { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.55); }
+.dark .shadow-xl  { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.55); }
+.dark .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.65); }
+
+/* ── Form inputs & selects ────────────────────────────────────── */
+.dark input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]),
+.dark select,
+.dark textarea {
+    background-color: #0f172a !important;
+    border-color: #475569 !important;
+    color: #e2e8f0 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #64748b !important; }
+.dark input:focus:not([type=checkbox]):not([type=radio]),
+.dark select:focus,
+.dark textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.2) !important;
+}
+/* Date / month inputs — must use dark colour-scheme */
+.dark input[type=date],
+.dark input[type=month],
+.dark input[type=datetime-local] {
+    color-scheme: dark !important;
+    color: #e2e8f0 !important;
+}
+
+/* ── Tables ───────────────────────────────────────────────────── */
+.dark table                 { color: #e2e8f0; }
+.dark thead tr,
+.dark thead                 { background-color: #1e293b !important; }
+.dark tbody tr              { background-color: #1e293b; }
+.dark tbody tr:hover        { background-color: #293548 !important; }
+
+/* Coloured row highlights */
+.dark tr.bg-red-50          { background-color: rgba(239,68,68,0.08) !important; }
+.dark tr.bg-yellow-50       { background-color: rgba(234,179,8,0.08) !important; }
+.dark tr.bg-green-50        { background-color: rgba(34,197,94,0.08) !important; }
+.dark tr.bg-amber-50        { background-color: rgba(245,158,11,0.08) !important; }
+
+/* ── Toast notifications (use inline background styles) ───────── */
+.dark [style*="background:#f0fdf4"] {
+    background: rgba(16,185,129,0.12) !important;
+    border-color: rgba(16,185,129,0.25) !important;
+}
+.dark [style*="background:#fef2f2"] {
+    background: rgba(239,68,68,0.12) !important;
+    border-color: rgba(239,68,68,0.25) !important;
+}
+.dark [style*="background:#fffbeb"] {
+    background: rgba(245,158,11,0.12) !important;
+    border-color: rgba(245,158,11,0.25) !important;
+}
+.dark [style*="background:#eff6ff"] {
+    background: rgba(99,102,241,0.12) !important;
+    border-color: rgba(99,102,241,0.25) !important;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+.dark ::-webkit-scrollbar       { background: #1e293b; }
+.dark ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+/* ── Chart.js canvas — subtle adjustment ─────────────────────── */
+.dark canvas { filter: brightness(0.9) contrast(1.1); }
+
+/* ── Inline-style select with custom arrow ────────────────────── */
+.dark select[style*="background-image"] {
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+}

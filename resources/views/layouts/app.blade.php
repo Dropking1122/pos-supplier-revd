@@ -2,6 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    {{-- Anti-flicker: apply dark class BEFORE CSS loads --}}
+    <script>try{const t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $setting->company_name ?? config('app.name') }} - POS Supplier</title>
     <meta name="description" content="Sistem Point of Sale untuk {{ $setting->company_name ?? config('app.name') }}. Kelola penjualan, stok produk, dan laporan bisnis.">
@@ -31,7 +33,7 @@
     @livewireStyles
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 dark:bg-slate-900 font-sans">
 <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
 
     <!-- Sidebar -->
@@ -213,16 +215,38 @@
     <div class="flex-1 flex flex-col overflow-hidden">
 
         <!-- Topbar -->
-        <header class="bg-white border-b border-gray-200 z-30 flex items-center justify-between px-4 py-3 md:px-6">
+        <header class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 z-30 flex items-center justify-between px-4 py-3 md:px-6">
             <div class="flex items-center gap-3">
-                <button @click="sidebarOpen=true" class="md:hidden text-gray-500 hover:text-gray-700 p-1">
+                <button @click="sidebarOpen=true" class="md:hidden text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 p-1">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-                <h2 class="text-base font-semibold text-gray-700">{{ $header ?? 'Dashboard' }}</h2>
+                <h2 class="text-base font-semibold text-gray-700 dark:text-slate-200">{{ $header ?? 'Dashboard' }}</h2>
             </div>
             <div class="flex items-center gap-1.5">
+                {{-- Dark Mode Toggle --}}
+                <div x-data="{ dark: document.documentElement.classList.contains('dark') }">
+                    <button @click="
+                            dark = !dark;
+                            document.documentElement.classList.toggle('dark', dark);
+                            localStorage.setItem('theme', dark ? 'dark' : 'light');
+                        "
+                        :title="dark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
+                        class="p-2 rounded-xl text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                        {{-- Moon icon — shown in light mode --}}
+                        <svg x-show="!dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                        {{-- Sun icon — shown in dark mode --}}
+                        <svg x-show="dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </button>
+                </div>
+
                 <livewire:notification-bell />
                 <div class="w-px h-5 bg-gray-200 mx-1 hidden sm:block"></div>
 
@@ -257,11 +281,11 @@
                          x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                          x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                          @click.outside="userOpen = false"
-                         class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                         class="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 z-50 overflow-hidden"
                          style="display:none;">
 
                         {{-- User Info --}}
-                        <div class="px-4 py-3 border-b border-gray-100">
+                        <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 {{ auth()->user()->is_admin ? 'bg-indigo-100' : 'bg-emerald-100' }} rounded-full flex items-center justify-center shrink-0">
                                     <span class="{{ auth()->user()->is_admin ? 'text-indigo-600' : 'text-emerald-600' }} text-sm font-bold">
@@ -281,14 +305,14 @@
                         {{-- Menu Items --}}
                         <div class="p-1.5 space-y-0.5">
                             <a href="{{ route('profile.edit') }}" @click="userOpen = false"
-                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                                <svg class="w-4 h-4 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                                 Profil Akun
                             </a>
 
-                            <div class="border-t border-gray-100 my-1"></div>
+                            <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
 
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -312,7 +336,7 @@
         </main>
 
         <!-- Footer -->
-        <footer class="bg-white border-t border-gray-200 px-4 md:px-6 py-2.5 flex items-center justify-center shrink-0">
+        <footer class="bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 px-4 md:px-6 py-2.5 flex items-center justify-center shrink-0">
             <p class="text-xs text-gray-400">Powered by <a href="https://revdstore.app" target="_blank" class="text-indigo-500 hover:text-indigo-700 font-medium transition-colors">revdstore.app</a></p>
         </footer>
     </div>
