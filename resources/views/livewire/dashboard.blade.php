@@ -56,83 +56,77 @@
         </a>
     </div>
 
-    <!-- Transaksi Terbaru + Stok Habis -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
-        <!-- Recent Sales -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 sm:p-5">
-            <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    </div>
-                    <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Transaksi Terbaru</h3>
+    <!-- Chart: Penjualan 7 Hari Terakhir -->
+    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-5 mb-4 md:mb-6">
+        <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
                 </div>
-                <a href="{{ route('sales.index') }}" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium whitespace-nowrap">Lihat semua →</a>
+                <div>
+                    <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Grafik Penjualan</h3>
+                    <p class="text-[10px] text-gray-400">7 hari terakhir</p>
+                </div>
             </div>
-            <div class="overflow-x-auto -mx-4 sm:mx-0">
-                <table class="w-full text-xs sm:text-sm min-w-[400px] sm:min-w-0">
-                    <thead>
-                        <tr class="text-left text-[10px] sm:text-xs text-gray-500 uppercase border-b border-gray-100">
-                            <th class="pb-2 font-semibold px-4 sm:px-0">Invoice</th>
-                            <th class="pb-2 font-semibold">Customer</th>
-                            <th class="pb-2 font-semibold text-right">Total</th>
-                            <th class="pb-2 font-semibold text-right pr-4 sm:pr-0">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentSales as $sale)
-                        <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                            <td class="py-2.5 font-mono text-[10px] sm:text-xs text-gray-500 px-4 sm:px-0">{{ $sale->invoice_number }}</td>
-                            <td class="py-2.5 text-gray-700 max-w-[90px] sm:max-w-none truncate">{{ $sale->customer?->name ?? 'Umum' }}</td>
-                            <td class="py-2.5 font-semibold text-gray-800 text-right tabular-nums whitespace-nowrap">Rp {{ number_format($sale->total_amount,0,',','.') }}</td>
-                            <td class="py-2.5 text-right pr-4 sm:pr-0">
-                                <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold
-                                    {{ $sale->status === 'paid' ? 'bg-green-100 text-green-700' : ($sale->status === 'partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
-                                    {{ $sale->status === 'paid' ? 'Lunas' : ($sale->status === 'partial' ? 'Sebagian' : 'Belum') }}
-                                </span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4" class="py-8 text-center text-gray-400 text-sm px-4 sm:px-0">Belum ada transaksi</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="flex items-center gap-3 text-[10px] text-gray-500">
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-3 h-3 rounded-sm bg-indigo-500"></span> Penjualan
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="inline-block w-3 h-3 rounded-sm bg-emerald-400"></span> Profit
+                </span>
             </div>
         </div>
+        <div class="relative" style="height:220px;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
 
-        <!-- Low Stock -->
-        <div class="bg-white rounded-xl shadow-sm p-4 sm:p-5">
-            <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
-                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    </div>
-                    <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Stok Hampir Habis</h3>
+    <!-- Transaksi Terbaru -->
+    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-5 mb-4 md:mb-6">
+        <div class="flex items-center justify-between gap-2 mb-4">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
-                @if($lowStockProducts->count() > 0)
-                <a href="{{ route('products.index') }}?filterLowStock=1"
-                   class="text-xs text-red-500 hover:text-red-700 font-medium whitespace-nowrap">
-                    Lihat semua →
-                </a>
-                @endif
+                <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Transaksi Terbaru</h3>
             </div>
-            @forelse($lowStockProducts as $product)
-            <a href="{{ route('products.index') }}?filterLowStock=1"
-               class="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 hover:bg-red-50 -mx-4 sm:-mx-5 px-4 sm:px-5 transition-colors">
-                <div class="min-w-0 mr-3">
-                    <p class="text-xs sm:text-sm font-medium text-gray-800 truncate">{{ $product->nama_barang }}</p>
-                    <p class="text-[10px] sm:text-xs text-gray-400">{{ $product->kode_barang }}</p>
-                </div>
-                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold shrink-0">{{ $product->kuantitas }}</span>
-            </a>
-            @empty
-            <div class="flex flex-col items-center gap-2 py-6 text-gray-400">
-                <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p class="text-sm text-green-600 font-medium">Semua stok aman</p>
-            </div>
-            @endforelse
+            <a href="{{ route('sales.index') }}" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium whitespace-nowrap">Lihat semua →</a>
+        </div>
+        <div class="overflow-x-auto -mx-4 sm:mx-0">
+            <table class="w-full text-xs sm:text-sm min-w-[400px] sm:min-w-0">
+                <thead>
+                    <tr class="text-left text-[10px] sm:text-xs text-gray-500 uppercase border-b border-gray-100">
+                        <th class="pb-2 font-semibold px-4 sm:px-0">Invoice</th>
+                        <th class="pb-2 font-semibold">Customer</th>
+                        <th class="pb-2 font-semibold">Tanggal</th>
+                        <th class="pb-2 font-semibold text-right">Total</th>
+                        <th class="pb-2 font-semibold text-right pr-4 sm:pr-0">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentSales as $sale)
+                    <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                        <td class="py-2.5 font-mono text-[10px] sm:text-xs text-indigo-600 font-semibold px-4 sm:px-0">{{ $sale->invoice_number }}</td>
+                        <td class="py-2.5 text-gray-700 max-w-[100px] sm:max-w-none truncate">{{ $sale->customer?->name ?? 'Umum' }}</td>
+                        <td class="py-2.5 text-gray-400 text-[10px] whitespace-nowrap">{{ $sale->created_at->locale('id')->isoFormat('D MMM, HH:mm') }}</td>
+                        <td class="py-2.5 font-semibold text-gray-800 text-right tabular-nums whitespace-nowrap">Rp {{ number_format($sale->total_amount,0,',','.') }}</td>
+                        <td class="py-2.5 text-right pr-4 sm:pr-0">
+                            <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold
+                                {{ $sale->status === 'paid' ? 'bg-green-100 text-green-700' : ($sale->status === 'partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
+                                {{ $sale->status === 'paid' ? 'Lunas' : ($sale->status === 'partial' ? 'Sebagian' : 'Belum') }}
+                            </span>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-gray-400 text-sm px-4 sm:px-0">Belum ada transaksi</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -146,7 +140,6 @@
         </div>
         @if($topProducts->count())
             @php $maxTerjual = $topProducts->first()->total_terjual ?: 1; @endphp
-            {{-- Mobile: daftar horizontal, Desktop: kartu 5-kolom --}}
             <div class="block md:hidden space-y-3">
                 @foreach($topProducts as $i => $tp)
                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -168,7 +161,6 @@
                 </div>
                 @endforeach
             </div>
-            {{-- Desktop: kartu 5-kolom --}}
             <div class="hidden md:grid md:grid-cols-5 gap-4">
                 @foreach($topProducts as $i => $tp)
                 <div class="flex flex-col items-center text-center bg-gray-50 rounded-xl p-4">
@@ -195,4 +187,81 @@
             </div>
         @endif
     </div>
+
+    @script
+    <script>
+        (function() {
+            const labels  = @json($chartLabels);
+            const sales   = @json($chartSales);
+            const profits = @json($chartProfit);
+
+            const ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Penjualan (Rp)',
+                            data: sales,
+                            backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            order: 2,
+                        },
+                        {
+                            label: 'Profit (Rp)',
+                            data: profits,
+                            type: 'line',
+                            borderColor: 'rgba(52, 211, 153, 1)',
+                            backgroundColor: 'rgba(52, 211, 153, 0.12)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: 'rgba(52, 211, 153, 1)',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.4,
+                            order: 1,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const v = ctx.parsed.y;
+                                    return ' ' + ctx.dataset.label.replace(' (Rp)','') + ': Rp ' +
+                                        new Intl.NumberFormat('id-ID').format(v);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11 }, color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                font: { size: 11 },
+                                color: '#9ca3af',
+                                callback: v => 'Rp ' + new Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1}).format(v)
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+    @endscript
 </div>
