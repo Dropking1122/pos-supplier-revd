@@ -18,8 +18,8 @@
                     <tr>
                         <th class="px-4 py-3 text-left">Nama</th>
                         <th class="px-4 py-3 text-left">Email</th>
+                        <th class="px-4 py-3 text-center">Role</th>
                         <th class="px-4 py-3 text-center">Total Transaksi</th>
-                        <th class="px-4 py-3 text-center">Status</th>
                         <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -28,8 +28,8 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center shrink-0">
-                                    <span class="text-indigo-600 text-xs font-bold">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                <div class="w-8 h-8 {{ $user->is_admin ? 'bg-indigo-100' : 'bg-emerald-100' }} rounded-full flex items-center justify-center shrink-0">
+                                    <span class="{{ $user->is_admin ? 'text-indigo-600' : 'text-emerald-600' }} text-xs font-bold">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
                                 </div>
                                 <div>
                                     <p class="font-medium text-gray-800">{{ $user->name }}</p>
@@ -41,12 +41,16 @@
                         </td>
                         <td class="px-4 py-3 text-gray-500">{{ $user->email }}</td>
                         <td class="px-4 py-3 text-center">
+                            @if($user->is_admin)
+                            <span class="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold">Admin</span>
+                            @else
+                            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">Kasir</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-center">
                             <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
                                 {{ $user->sales_count }} transaksi
                             </span>
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Aktif</span>
                         </td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">
                             @if(auth()->user()->is_admin)
@@ -113,6 +117,28 @@
                         <input wire:model="password_confirmation" type="password" placeholder="Ulangi password"
                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
+                    {{-- Role selection --}}
+                    @if(!($editId && $editId === auth()->id()))
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <div class="flex gap-3">
+                            <label class="flex-1 flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-colors {{ $is_admin ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-gray-300' }}">
+                                <input wire:model.live="is_admin" type="radio" value="1" class="text-indigo-600">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">Admin</p>
+                                    <p class="text-xs text-gray-500">Akses penuh ke semua fitur</p>
+                                </div>
+                            </label>
+                            <label class="flex-1 flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-colors {{ !$is_admin ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300' }}">
+                                <input wire:model.live="is_admin" type="radio" value="0" class="text-emerald-600">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">Kasir</p>
+                                    <p class="text-xs text-gray-500">Hanya transaksi sendiri</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 <div class="flex gap-3 mt-6">
                     <button wire:click="$set('showModal', false)"

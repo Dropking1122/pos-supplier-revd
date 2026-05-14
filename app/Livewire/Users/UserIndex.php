@@ -18,7 +18,7 @@ class UserIndex extends Component
     public $deleteId = null;
     public $deleteName = '';
 
-    public $name = '', $email = '', $password = '', $password_confirmation = '';
+    public $name = '', $email = '', $password = '', $password_confirmation = '', $is_admin = false;
 
     public function updatingSearch() { $this->resetPage(); }
 
@@ -32,6 +32,7 @@ class UserIndex extends Component
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|max:255|unique:users,email,' . ($this->editId ?? 'NULL'),
             'password' => $passwordRule,
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -41,17 +42,22 @@ class UserIndex extends Component
             $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat menambah user.');
             return;
         }
-        $this->reset(['editId', 'name', 'email', 'password', 'password_confirmation']);
+        $this->reset(['editId', 'name', 'email', 'password', 'password_confirmation', 'is_admin']);
         $this->resetErrorBag();
         $this->showModal = true;
     }
 
     public function openEdit($id)
     {
+        if (!auth()->user()->is_admin) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya admin yang dapat mengedit user.');
+            return;
+        }
         $user = User::findOrFail($id);
         $this->editId   = $id;
         $this->name     = $user->name;
         $this->email    = $user->email;
+        $this->is_admin = (bool) $user->is_admin;
         $this->password = '';
         $this->password_confirmation = '';
         $this->resetErrorBag();
@@ -67,9 +73,17 @@ class UserIndex extends Component
         $this->validate();
 
         if ($this->editId) {
-            $data = ['name' => $this->name, 'email' => $this->email];
+            $data = [
+                'name'     => $this->name,
+                'email'    => $this->email,
+                'is_admin' => (bool) $this->is_admin,
+            ];
             if ($this->password) {
                 $data['password'] = Hash::make($this->password);
+            }
+            // Jangan cabut admin dari diri sendiri
+            if ($this->editId === auth()->id()) {
+                $data['is_admin'] = true;
             }
             User::findOrFail($this->editId)->update($data);
             $msg = 'User berhasil diperbarui.';
@@ -78,12 +92,13 @@ class UserIndex extends Component
                 'name'     => $this->name,
                 'email'    => $this->email,
                 'password' => Hash::make($this->password),
+                'is_admin' => (bool) $this->is_admin,
             ]);
             $msg = 'User baru berhasil ditambahkan.';
         }
 
         $this->showModal = false;
-        $this->reset(['editId', 'name', 'email', 'password', 'password_confirmation']);
+        $this->reset(['editId', 'name', 'email', 'password', 'password_confirmation', 'is_admin']);
         $this->dispatch('toast', type: 'success', message: $msg);
     }
 
@@ -127,6 +142,7 @@ class UserIndex extends Component
         $users = User::when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%"))
             ->withCount('sales')
+            ->orderBy('is_admin', 'desc')
             ->orderBy('name')
             ->paginate(15);
 

@@ -26,6 +26,10 @@ class SaleList extends Component {
 
     public function confirmDelete($id) {
         $sale = Sale::findOrFail($id);
+        if (!auth()->user()->is_admin && $sale->user_id !== auth()->id()) {
+            $this->dispatch('toast', type: 'error', message: 'Anda tidak bisa menghapus transaksi milik kasir lain.');
+            return;
+        }
         $this->deleteSaleId      = $id;
         $this->deleteSaleInvoice = $sale->invoice_number;
         $this->showDeleteModal   = true;
@@ -34,14 +38,18 @@ class SaleList extends Component {
     public function deleteSale() {
         $sale = Sale::with(['details.product', 'debt.payments'])->findOrFail($this->deleteSaleId);
 
-        // Restore stock for each item
+        if (!auth()->user()->is_admin && $sale->user_id !== auth()->id()) {
+            $this->dispatch('toast', type: 'error', message: 'Anda tidak bisa menghapus transaksi milik kasir lain.');
+            $this->showDeleteModal = false;
+            return;
+        }
+
         foreach ($sale->details as $detail) {
             if ($detail->product) {
                 $detail->product->increment('kuantitas', $detail->quantity);
             }
         }
 
-        // Remove debt payments then debt
         if ($sale->debt) {
             $sale->debt->payments()->delete();
             $sale->debt->delete();
@@ -58,8 +66,10 @@ class SaleList extends Component {
     }
 
     public function render() {
+        $isAdmin  = auth()->user()->is_admin;
         $customers = Customer::orderBy('name')->get();
         $sales = Sale::with('customer', 'user')
+            ->when(!$isAdmin, fn($q) => $q->where('user_id', auth()->id()))
             ->when($this->search, fn($q)=>$q->where('invoice_number','like',"%{$this->search}%")->orWhereHas('customer',fn($q2)=>$q2->where('name','like',"%{$this->search}%")))
             ->when($this->filterStatus, fn($q)=>$q->where('status',$this->filterStatus))
             ->when($this->filterDate, fn($q)=>$q->whereDate('created_at',$this->filterDate))
@@ -67,6 +77,6 @@ class SaleList extends Component {
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
         $setting = Setting::getSettings();
-        return view('livewire.sales.sale-list', compact('sales','setting','customers'));
+        return view('livewire.sales.sale-list', compact('sales','setting','customers','isAdmin'));
     }
 }

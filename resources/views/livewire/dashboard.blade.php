@@ -1,11 +1,18 @@
 <div>
+    @if(!$isAdmin)
+    <div class="mb-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-4 py-2.5 rounded-lg">
+        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span>Anda login sebagai <strong>Kasir</strong>. Data yang ditampilkan hanya milik Anda.</span>
+    </div>
+    @endif
+
     <!-- Stats Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+    <div class="grid grid-cols-2 {{ $isAdmin ? 'md:grid-cols-4' : 'md:grid-cols-2' }} gap-3 md:gap-4 mb-6">
 
         <a href="{{ route('sales.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-indigo-500 p-3 sm:p-4 hover:shadow-md hover:border-indigo-600 transition-all cursor-pointer group">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Penjualan</p>
+                    <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">{{ $isAdmin ? 'Total Penjualan' : 'Penjualan Saya' }}</p>
                     <p class="text-sm sm:text-base md:text-xl font-bold text-gray-800 mt-0.5 tabular-nums break-all">Rp&nbsp;{{ number_format($totalSales,0,',','.') }}</p>
                 </div>
                 <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-indigo-100 transition-colors">
@@ -15,19 +22,22 @@
             <p class="text-[10px] text-indigo-400 mt-1 font-medium hidden sm:block">Lihat riwayat →</p>
         </a>
 
-        <a href="{{ route('reports.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-green-500 p-3 sm:p-4 hover:shadow-md hover:border-green-600 transition-all cursor-pointer group">
+        <div class="bg-white rounded-xl shadow-sm border-l-4 border-green-500 p-3 sm:p-4">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">Total Profit</p>
+                    <p class="text-[10px] sm:text-xs text-gray-500 uppercase font-semibold tracking-wide">{{ $isAdmin ? 'Total Profit' : 'Profit Saya' }}</p>
                     <p class="text-sm sm:text-base md:text-xl font-bold text-gray-800 mt-0.5 tabular-nums break-all">Rp&nbsp;{{ number_format($totalProfit,0,',','.') }}</p>
                 </div>
-                <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-green-100 transition-colors">
+                <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 </div>
             </div>
+            @if($isAdmin)
             <p class="text-[10px] text-green-400 mt-1 font-medium hidden sm:block">Lihat laporan →</p>
-        </a>
+            @endif
+        </div>
 
+        @if($isAdmin)
         <a href="{{ route('debts.index') }}" class="bg-white rounded-xl shadow-sm border-l-4 border-yellow-500 p-3 sm:p-4 hover:shadow-md hover:border-yellow-600 transition-all cursor-pointer group">
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
@@ -54,6 +64,7 @@
             </div>
             <p class="text-[10px] text-blue-400 mt-1 font-medium hidden sm:block">Lihat produk →</p>
         </a>
+        @endif
     </div>
 
     <!-- Chart: Penjualan 7 Hari Terakhir -->
@@ -67,7 +78,7 @@
                 </div>
                 <div>
                     <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Grafik Penjualan</h3>
-                    <p class="text-[10px] text-gray-400">7 hari terakhir</p>
+                    <p class="text-[10px] text-gray-400">7 hari terakhir{{ !$isAdmin ? ' (milik saya)' : '' }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 text-[10px] text-gray-500">
@@ -91,7 +102,7 @@
                 <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
-                <h3 class="font-semibold text-gray-700 text-sm sm:text-base">Transaksi Terbaru</h3>
+                <h3 class="font-semibold text-gray-700 text-sm sm:text-base">{{ $isAdmin ? 'Transaksi Terbaru' : 'Transaksi Saya Terbaru' }}</h3>
             </div>
             <a href="{{ route('sales.index') }}" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium whitespace-nowrap">Lihat semua →</a>
         </div>
@@ -130,6 +141,7 @@
         </div>
     </div>
 
+    @if($isAdmin)
     <!-- Top 5 Produk Terlaris -->
     <div class="bg-white rounded-xl shadow-sm p-4 sm:p-5">
         <div class="flex items-center gap-2 mb-4 sm:mb-5">
@@ -187,6 +199,7 @@
             </div>
         @endif
     </div>
+    @endif
 
     @script
     <script>

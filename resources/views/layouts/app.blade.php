@@ -57,6 +57,7 @@
                 Dashboard
             </a>
 
+            @if(auth()->user()->is_admin)
             <div class="pt-4 pb-1.5 px-3">
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Barang</span>
             </div>
@@ -69,6 +70,7 @@
                 </svg>
                 Data Barang
             </a>
+            @endif
 
             <div class="pt-4 pb-1.5 px-3">
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Transaksi</span>
@@ -92,6 +94,7 @@
                 Riwayat Penjualan
             </a>
 
+            @if(auth()->user()->is_admin)
             <div class="pt-4 pb-1.5 px-3">
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</span>
             </div>
@@ -126,11 +129,13 @@
                 </svg>
                 Laporan Penjualan
             </a>
+            @endif
 
             <div class="pt-4 pb-1.5 px-3">
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pengaturan</span>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Akun</span>
             </div>
 
+            @if(auth()->user()->is_admin)
             <a href="{{ route('users.index') }}"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                {{ request()->routeIs('users.*') ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
@@ -158,6 +163,7 @@
                 </svg>
                 Pengaturan Toko
             </a>
+            @endif
 
             <a href="{{ route('profile.edit') }}"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
@@ -210,7 +216,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                     </div>
-                    <span class="text-sm text-gray-600 font-medium hidden sm:block">{{ auth()->user()->name }}</span>
+                    <div class="hidden sm:flex items-center gap-1.5">
+                        <span class="text-sm text-gray-600 font-medium">{{ auth()->user()->name }}</span>
+                        @if(auth()->user()->is_admin)
+                        <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full leading-none">ADMIN</span>
+                        @else
+                        <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full leading-none">KASIR</span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </header>
