@@ -400,6 +400,127 @@ class ExportController extends Controller
         return $pdf->download($filename);
     }
 
+    public function productExport()
+    {
+        $products = Product::orderBy('nama_barang')->get();
+        $setting  = Setting::getSettings();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Barang');
+
+        $rpFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+
+        $sheet->setCellValue('A1', 'DATA BARANG - ' . strtoupper($setting->company_name));
+        $sheet->setCellValue('A2', 'Dicetak: ' . now()->format('d/m/Y H:i') . '  |  Total: ' . $products->count() . ' produk');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+        $sheet->getStyle('A2')->getFont()->setSize(9)->setColor((new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB('64748b'));
+
+        $headerRow = 4;
+        $headers = ['A'=>'KODE BARANG','B'=>'NAMA BARANG','C'=>'JENIS','D'=>'SATUAN',
+                    'E'=>'STOK','F'=>'STOK MIN','G'=>'MODAL (Rp)','H'=>'GROSIR (Rp)','I'=>'ECER (Rp)'];
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue("{$col}{$headerRow}", $label);
+        }
+        $sheet->getStyle("A{$headerRow}:I{$headerRow}")->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '3730a3']]],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(26);
+
+        $row = $headerRow + 1;
+        foreach ($products as $p) {
+            $isLow = $p->kuantitas <= $p->stock_minimum;
+            $sheet->setCellValue("A{$row}", $p->kode_barang);
+            $sheet->setCellValue("B{$row}", $p->nama_barang);
+            $sheet->setCellValue("C{$row}", $p->jenis_barang ?? '');
+            $sheet->setCellValue("D{$row}", $p->harga_satuan ?? '');
+            $sheet->setCellValue("E{$row}", $p->kuantitas);
+            $sheet->setCellValue("F{$row}", $p->stock_minimum);
+            $sheet->setCellValue("G{$row}", $p->modal_awal);
+            $sheet->setCellValue("H{$row}", $p->harga_grosir);
+            $sheet->setCellValue("I{$row}", $p->harga_ecer);
+
+            foreach (['G','H','I'] as $c) {
+                $sheet->getStyle("{$c}{$row}")->getNumberFormat()->setFormatCode($rpFmt);
+            }
+            $bg = $isLow ? 'FFF1F2' : ($row % 2 === 0 ? 'F8FAFC' : 'FFFFFF');
+            $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
+                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+            ]);
+            if ($isLow) {
+                $sheet->getStyle("E{$row}")->getFont()->setBold(true)->setColor(
+                    (new \PhpOffice\PhpSpreadsheet\Style\Color())->setRGB('dc2626')
+                );
+            }
+            $sheet->getStyle("A{$row}:D{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("E{$row}:F{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getRowDimension($row)->setRowHeight(20);
+            $row++;
+        }
+
+        foreach (['A'=>18,'B'=>32,'C'=>14,'D'=>10,'E'=>8,'F'=>9,'G'=>16,'H'=>16,'I'=>16] as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        $filename = 'data-barang-' . now()->format('Ymd-His') . '.xlsx';
+        $writer   = new Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer->save($tempFile);
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    public function productImportTemplate()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Import');
+
+        $headers = ['kode_barang','nama_barang','jenis_barang','kuantitas','harga_satuan','modal_awal','harga_grosir','harga_ecer','stock_minimum'];
+        foreach ($headers as $i => $h) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue("{$col}1", $h);
+        }
+        $sheet->getStyle('A1:I1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4f46e5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        $samples = [
+            ['BRG001','Beras Premium 5kg','Sembako',100,'karung',45000,50000,55000,20],
+            ['BRG002','Minyak Goreng 1L','Sembako',200,'botol',13000,15000,16000,50],
+            ['BRG003','Gula Pasir 1kg','Sembako',150,'kg',13500,15000,16000,30],
+        ];
+        foreach ($samples as $i => $s) {
+            $row = $i + 2;
+            foreach ($s as $j => $val) {
+                $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($j + 1);
+                $sheet->setCellValue("{$col}{$row}", $val);
+            }
+            $bg = $row % 2 === 0 ? 'F8FAFC' : 'FFFFFF';
+            $sheet->getStyle("A{$row}:I{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($bg);
+        }
+
+        foreach ([18,30,14,10,12,14,14,14,12] as $i => $width) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        $writer   = new Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer->save($tempFile);
+        return response()->download($tempFile, 'template-import-produk.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
     public function pdf(Request $request)
     {
         $sales        = $this->getSales($request);

@@ -5,6 +5,24 @@ use Livewire\Component;
 
 class NotificationBell extends Component
 {
+    public int $seenCount = 0;
+
+    public function mount(): void
+    {
+        $this->seenCount = (int) session('bell_seen_count', 0);
+    }
+
+    public function markSeen(): void
+    {
+        $count = min(
+            Product::whereColumn('kuantitas', '<=', 'stock_minimum')->count()
+                + Sale::whereDate('created_at', today())->count(),
+            99
+        );
+        $this->seenCount = $count;
+        session(['bell_seen_count' => $count]);
+    }
+
     public function render()
     {
         $lowStockProducts = Product::whereColumn('kuantitas', '<=', 'stock_minimum')
@@ -19,8 +37,7 @@ class NotificationBell extends Component
 
         $todaySalesCount = Sale::whereDate('created_at', today())->count();
 
-        $badgeCount = $lowStockProducts->count() + $todaySalesCount;
-        $badgeCount = min($badgeCount, 99);
+        $badgeCount = min($lowStockProducts->count() + $todaySalesCount, 99);
 
         return view('livewire.notification-bell', compact(
             'lowStockProducts', 'todaySales', 'todaySalesCount', 'badgeCount'

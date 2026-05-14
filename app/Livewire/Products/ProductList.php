@@ -4,9 +4,10 @@ use App\Models\Product;
 use App\Models\SaleDetail;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class ProductList extends Component {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
     public $search = '';
     public $showModal = false;
     public $editId = null;
@@ -17,6 +18,11 @@ class ProductList extends Component {
 
     public $showRestockModal = false;
     public $restockId = null, $restockNama = '', $restockJumlah = 0;
+
+    public $showImportModal = false;
+    public $importFile = null;
+    public $importErrors = [];
+    public $importSuccess = 0;
 
     protected $queryString = ['filterLowStock' => ['except' => false]];
 
@@ -131,6 +137,80 @@ class ProductList extends Component {
         $p->increment('kuantitas', $this->restockJumlah);
         $this->dispatch('toast', type: 'success', message: 'Restock "'.$p->nama_barang.'" berhasil. Stok ditambah '.$this->restockJumlah.' unit.');
         $this->showRestockModal = false;
+    }
+
+    public function importProducts()
+    {
+        $this->validate(['importFile' => 'required|file|mimes:xlsx,xls,csv|max:5120'], [
+            'importFile.required' => 'Pilih file terlebih dahulu.',
+            'importFile.mimes'    => 'Format file harus .xlsx, .xls, atau .csv.',
+            'importFile.max'      => 'Ukuran file maksimal 5 MB.',
+        ]);
+
+        $path = $this->importFile->getRealPath();
+        $ext  = strtolower($this->importFile->getClientOriginalExtension());
+
+        $rows = [];
+        if ($ext === 'csv') {
+            $handle = fopen($path, 'r');
+            $header = array_map('trim', fgetcsv($handle) ?: []);
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) >= 2 && array_filter($row)) {
+                    $rows[] = array_combine(array_slice($header, 0, count($row)), array_map('trim', $row));
+                }
+            }
+            fclose($handle);
+        } else {
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($path);
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($path);
+            $data   = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+            $header = array_map('trim', array_shift($data) ?: []);
+            foreach ($data as $row) {
+                $row = array_map(fn($v) => trim((string)($v ?? '')), $row);
+                if (array_filter($row)) {
+                    $rows[] = array_combine(array_slice($header, 0, count($row)), $row);
+                }
+            }
+        }
+
+        $imported = 0;
+        $errors   = [];
+        foreach ($rows as $i => $row) {
+            $rowNum = $i + 2;
+            $kode   = trim($row['kode_barang'] ?? '');
+            $nama   = trim($row['nama_barang'] ?? '');
+            if (!$kode || !$nama) {
+                $errors[] = "Baris {$rowNum}: kode_barang dan nama_barang wajib diisi.";
+                continue;
+            }
+            $data = [
+                'kode_barang'   => $kode,
+                'nama_barang'   => $nama,
+                'jenis_barang'  => $row['jenis_barang'] ?? '',
+                'kuantitas'     => (int) ($row['kuantitas'] ?? 0),
+                'harga_satuan'  => $row['harga_satuan'] ?? '',
+                'modal_awal'    => (float) str_replace([',', '.'], ['', ''], $row['modal_awal'] ?? 0),
+                'harga_grosir'  => (float) str_replace([',', '.'], ['', ''], $row['harga_grosir'] ?? 0),
+                'harga_ecer'    => (float) str_replace([',', '.'], ['', ''], $row['harga_ecer'] ?? 0),
+                'stock_minimum' => (int) ($row['stock_minimum'] ?? 5),
+            ];
+            Product::updateOrCreate(['kode_barang' => $kode], $data);
+            $imported++;
+        }
+
+        $this->importFile    = null;
+        $this->importErrors  = $errors;
+        $this->importSuccess = $imported;
+
+        if ($imported > 0 && !$errors) {
+            $this->showImportModal = false;
+            $this->dispatch('toast', type: 'success', title: 'Import Berhasil', message: "{$imported} produk berhasil diimport/diperbarui.");
+        } elseif ($imported > 0) {
+            $this->dispatch('toast', type: 'warning', title: 'Import Sebagian', message: "{$imported} produk berhasil, ".count($errors)." baris gagal.");
+        } else {
+            $this->dispatch('toast', type: 'error', title: 'Import Gagal', message: 'Tidak ada data yang berhasil diimport. Periksa format file.');
+        }
     }
     public function render() {
         $sortableAggregates = ['total_terjual', 'total_pendapatan'];
