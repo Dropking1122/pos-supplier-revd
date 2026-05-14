@@ -47,13 +47,15 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
                         <input wire:model.live="filterDate" type="date"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                               style="color-scheme: light"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800">
                     </div>
                     @elseif($filterType === 'monthly')
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Bulan</label>
                         <input wire:model.live="filterMonth" type="month"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                               style="color-scheme: light"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800">
                     </div>
                     @else
                     <div>
@@ -230,7 +232,8 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal</label>
                         <input wire:model.live="stockDate" type="date"
-                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                               style="color-scheme: light"
+                               class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Cari Produk</label>

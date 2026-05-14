@@ -291,7 +291,9 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Kuantitas <span class="text-red-500">*</span></label>
-                        <input wire:model="kuantitas" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <input wire:model="kuantitas" type="number" min="0" placeholder="0"
+                               x-on:focus="if(Number($el.value) === 0) $el.select()"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
@@ -300,13 +302,16 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Modal Awal (Rp) <span class="text-red-500">*</span></label>
-                    <input wire:model.live.debounce.300ms="modal_awal" type="number" min="0" step="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input wire:model.live.debounce.300ms="modal_awal" type="number" min="0" step="100" placeholder="0"
+                           x-on:focus="if(Number($el.value) === 0) $el.select()"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     @error('modal_awal') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Harga Grosir (Rp)</label>
-                        <input wire:model.live.debounce.300ms="harga_grosir" type="number" min="0" step="100"
+                        <input wire:model.live.debounce.300ms="harga_grosir" type="number" min="0" step="100" placeholder="0"
+                               x-on:focus="if(Number($el.value) === 0) $el.select()"
                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
                                       {{ $errors->has('harga_grosir') ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-indigo-500' }}">
                         @error('harga_grosir') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
@@ -322,7 +327,8 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Harga Ecer (Rp)</label>
-                        <input wire:model.live.debounce.300ms="harga_ecer" type="number" min="0" step="100"
+                        <input wire:model.live.debounce.300ms="harga_ecer" type="number" min="0" step="100" placeholder="0"
+                               x-on:focus="if(Number($el.value) === 0) $el.select()"
                                class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
                                       {{ $errors->has('harga_ecer') ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-indigo-500' }}">
                         @error('harga_ecer') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
@@ -339,7 +345,9 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Stok Minimum</label>
-                    <input wire:model="stock_minimum" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input wire:model="stock_minimum" type="number" min="0" placeholder="0"
+                           x-on:focus="if(Number($el.value) === 0) $el.select()"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     <p class="text-xs text-gray-400 mt-1">Peringatan stok rendah muncul saat stok ≤ nilai ini</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-2 border-t">

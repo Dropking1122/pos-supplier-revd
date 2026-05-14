@@ -73,14 +73,14 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     @if($inputMode === 'qty')
-                                        <input wire:model.live.debounce.300ms="items.{{ $i }}.quantity" type="number" min="1" max="{{ $item['stok'] }}" inputmode="numeric"
-                                               x-on:focus="setTimeout(() => $el.scrollIntoView({behavior:'smooth',block:'center'}), 350)"
+                                        <input wire:model.blur="items.{{ $i }}.quantity" type="number" min="1" max="{{ $item['stok'] }}" inputmode="numeric"
+                                               x-on:focus="setTimeout(() => $el.scrollIntoView({behavior:'smooth',block:'center'}), 350); if(Number($el.value) <= 0) $el.select()"
                                                class="w-16 border border-gray-300 rounded px-2 py-1 text-xs text-center">
                                         <p class="text-[10px] mt-0.5 {{ $item['quantity'] >= $item['stok'] ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
                                             Sisa: {{ $item['stok'] - $item['quantity'] }} / {{ $item['stok'] }}
                                         </p>
                                     @else
-                                        <input wire:model.live.debounce.300ms="items.{{ $i }}.sisa_input" type="number" min="0" max="{{ $item['stok'] - 1 }}" inputmode="numeric"
+                                        <input wire:model.blur="items.{{ $i }}.sisa_input" type="number" min="0" max="{{ $item['stok'] - 1 }}" inputmode="numeric"
                                                x-on:focus="setTimeout(() => $el.scrollIntoView({behavior:'smooth',block:'center'}), 350)"
                                                class="w-16 border border-amber-300 bg-amber-50 rounded px-2 py-1 text-xs text-center focus:ring-1 focus:ring-amber-400">
                                         <p class="text-[10px] mt-0.5 text-amber-600 font-semibold">
@@ -147,7 +147,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jatuh Tempo <span class="text-red-500">*</span></label>
                     <input wire:model="due_date" type="date" min="{{ now()->format('Y-m-d') }}"
-                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none
+                           style="color-scheme: light"
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none text-gray-800
                                   {{ !$due_date ? 'border-orange-300 focus:ring-orange-400' : 'border-gray-300 focus:ring-indigo-500' }}">
                     @if(!$due_date)
                     <p class="text-xs text-orange-500 mt-0.5">Tanggal jatuh tempo wajib diisi.</p>

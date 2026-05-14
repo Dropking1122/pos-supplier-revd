@@ -95,7 +95,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Bayar *</label>
-                    <input wire:model="payDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input wire:model="payDate" type="date" style="color-scheme: light" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
