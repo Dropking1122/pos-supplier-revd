@@ -7,4 +7,10 @@ class InvoiceController extends Controller {
         $setting = Setting::getSettings();
         return view('sales.invoice', compact('sale','setting'));
     }
+
+    public function showCustomer($id) {
+        $sale = Sale::with(['customer','details.product'])->findOrFail($id);
+        $setting = Setting::getSettings();
+        return view('sales.invoice-customer', compact('sale','setting'));
+    }
 }

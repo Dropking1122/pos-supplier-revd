@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales', fn() => view('sales.index'))->name('sales.index');
     Route::get('/sales/create', fn() => view('sales.create'))->name('sales.create');
     Route::get('/sales/{id}/invoice', [InvoiceController::class, 'show'])->name('sales.invoice');
+    Route::get('/sales/{id}/invoice-customer', [InvoiceController::class, 'showCustomer'])->name('sales.invoice-customer');
     Route::get('/sales/{id}/invoice-excel', [ExportController::class, 'invoiceExcel'])->name('sales.invoice-excel');
     Route::get('/sales/export-customer', [ExportController::class, 'customerExcel'])->name('sales.export-customer');
     Route::get('/sales/export-customer-pdf', [ExportController::class, 'customerPdf'])->name('sales.export-customer-pdf');

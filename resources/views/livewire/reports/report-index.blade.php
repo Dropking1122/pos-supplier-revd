@@ -72,7 +72,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        Export CSV
+                        Export Excel
                     </a>
                     <a href="{{ route('reports.pdf', ['type'=>$filterType,'date'=>$filterDate,'month'=>$filterMonth,'year'=>$filterYear]) }}"
                        target="_blank"
@@ -127,67 +127,63 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
                         <tr>
-                            <th class="px-4 py-3 text-center w-10">No</th>
                             <th class="px-4 py-3 text-left">Invoice</th>
-                            <th class="px-4 py-3 text-left">Tanggal</th>
                             <th class="px-4 py-3 text-left">Customer</th>
-                            <th class="px-4 py-3 text-center">Tipe</th>
+                            <th class="px-4 py-3 text-left">Tanggal</th>
                             <th class="px-4 py-3 text-right">Total</th>
                             <th class="px-4 py-3 text-right">Profit</th>
+                            <th class="px-4 py-3 text-center">Pembayaran</th>
                             <th class="px-4 py-3 text-center">Status</th>
-                            <th class="px-4 py-3 text-center">Invoice</th>
+                            <th class="px-4 py-3 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        @forelse($sales as $i => $sale)
+                        @forelse($sales as $sale)
                         @php
                             $profit = $sale->details->sum(fn($d) => $d->subtotal - ($d->quantity * ($d->product->modal_awal ?? 0)));
                         @endphp
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 text-center text-xs text-gray-400">{{ $i + 1 }}</td>
-                            <td class="px-4 py-3 font-mono text-xs text-indigo-600 font-semibold">{{ $sale->invoice_number }}</td>
-                            <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
-                                <div>{{ $sale->created_at->format('d/m/Y') }}</div>
-                                <div class="text-gray-400">{{ $sale->created_at->format('H:i') }}</div>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="{{ $sale->customer ? 'text-gray-700' : 'text-gray-400 italic' }}">
-                                    {{ $sale->customer?->name ?? 'Umum' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $sale->payment_type === 'cash' ? 'bg-sky-100 text-sky-700' : 'bg-purple-100 text-purple-700' }}">
-                                    {{ $sale->payment_type === 'cash' ? 'Cash' : 'Tempo' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-right font-semibold text-gray-800 whitespace-nowrap">
-                                Rp {{ number_format($sale->total_amount,0,',','.') }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-semibold whitespace-nowrap
-                                {{ $profit >= 0 ? 'text-green-600' : 'text-red-500' }}">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-mono text-xs font-semibold text-indigo-600">{{ $sale->invoice_number }}</td>
+                            <td class="px-4 py-3">{{ $sale->customer?->name ?? 'Umum' }}</td>
+                            <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="px-4 py-3 text-right font-semibold whitespace-nowrap">Rp {{ number_format($sale->total_amount,0,',','.') }}</td>
+                            <td class="px-4 py-3 text-right font-semibold whitespace-nowrap {{ $profit >= 0 ? 'text-green-600' : 'text-red-500' }}">
                                 Rp {{ number_format($profit,0,',','.') }}
                             </td>
                             <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold
-                                    {{ $sale->status==='paid'    ? 'bg-green-100 text-green-700'
-                                    : ($sale->status==='partial' ? 'bg-yellow-100 text-yellow-700'
-                                    :                              'bg-red-100 text-red-700') }}">
-                                    {{ $sale->status==='paid' ? 'Lunas' : ($sale->status==='partial' ? 'Sebagian' : 'Belum Bayar') }}
+                                <span class="px-2 py-0.5 rounded-full text-xs {{ $sale->payment_type === 'cash' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700' }}">
+                                    {{ $sale->payment_type === 'cash' ? 'Cash' : 'Tempo' }}
                                 </span>
                             </td>
                             <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                                    {{ $sale->status==='paid' ? 'bg-green-100 text-green-700' : ($sale->status==='partial' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
+                                    {{ $sale->status==='paid' ? 'Lunas' : ($sale->status==='partial' ? 'Sebagian' : 'Belum Bayar') }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center whitespace-nowrap">
+                                <a href="{{ route('sales.invoice-customer', $sale->id) }}" target="_blank"
+                                   class="inline-flex items-center gap-1 text-sky-600 hover:text-sky-800 text-xs bg-sky-50 hover:bg-sky-100 px-2 py-1 rounded transition-colors mr-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Invoice
+                                </a>
                                 <a href="{{ route('sales.invoice', $sale->id) }}" target="_blank"
-                                   class="text-indigo-500 hover:text-indigo-700 text-xs font-medium underline-offset-2 hover:underline">
-                                    Lihat
+                                   class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors mr-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Internal
+                                </a>
+                                <a href="{{ route('sales.invoice-excel', $sale->id) }}"
+                                   class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-800 text-xs bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Excel
                                 </a>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="px-4 py-12 text-center">
+                            <td colspan="8" class="px-4 py-12 text-center">
                                 <div class="flex flex-col items-center gap-2">
                                     <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -201,7 +197,7 @@
                     @if($sales->count())
                     <tfoot class="bg-indigo-50 border-t-2 border-indigo-200">
                         <tr>
-                            <td colspan="5" class="px-4 py-3 text-right text-sm font-bold text-gray-700">
+                            <td colspan="3" class="px-4 py-3 text-right text-sm font-bold text-gray-700">
                                 TOTAL ({{ $sales->count() }} transaksi)
                             </td>
                             <td class="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">
@@ -210,7 +206,7 @@
                             <td class="px-4 py-3 text-right font-bold text-green-700 whitespace-nowrap">
                                 Rp {{ number_format($totalProfit,0,',','.') }}
                             </td>
-                            <td colspan="2"></td>
+                            <td colspan="3"></td>
                         </tr>
                     </tfoot>
                     @endif

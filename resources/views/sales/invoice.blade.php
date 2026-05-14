@@ -75,11 +75,15 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
 <div class="page">
 
     {{-- Tombol Aksi --}}
-    <div class="no-print" style="display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;">
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;align-items:center;">
         <button onclick="window.print()"
             style="background:#4f46e5;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
-            🖨 Cetak Invoice
+            🖨 Cetak Laporan
         </button>
+        <a href="{{ route('sales.invoice-customer', $sale->id) }}" target="_blank"
+            style="background:#0284c7;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+            🧾 Invoice Customer
+        </a>
         <a href="{{ route('sales.invoice-excel', $sale->id) }}"
             style="background:#16a34a;color:#fff;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
             📥 Export Excel
@@ -88,6 +92,7 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
             style="background:#f1f5f9;color:#334155;padding:9px 22px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;">
             ✕ Tutup
         </button>
+        <span style="font-size:11px;color:#94a3b8;margin-left:4px;">📋 Laporan Internal</span>
     </div>
 
     {{-- Header --}}
