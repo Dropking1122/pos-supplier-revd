@@ -52,9 +52,9 @@ tfoot tr td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; fon
 @media print {
     body { background: #fff; }
     .no-print { display: none !important; }
-    .page { padding: 16px; max-width: 100%; }
+    .page { padding: 0; max-width: 100%; }
     body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-    @page { margin: 10mm; size: A5 portrait; }
+    @page { margin: 14mm; size: A4 portrait; }
 }
 </style>
 </head>

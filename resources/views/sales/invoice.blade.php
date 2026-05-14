@@ -65,9 +65,9 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
 @media print {
     body { background: #fff; }
     .no-print { display: none !important; }
-    .page { padding: 16px; }
+    .page { padding: 0; max-width: 100%; }
     body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-    @page { margin: 12mm; size: A4 landscape; }
+    @page { margin: 15mm 14mm; size: A4 landscape; }
 }
 </style>
 </head>

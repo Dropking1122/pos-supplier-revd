@@ -3,30 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <style>
+@page { margin: 15mm 14mm; size: A4 landscape; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; color: #1e293b; background: #fff; }
 
-.header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 3px solid #4f46e5; }
+.header { display: table; width: 100%; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 3px solid #4f46e5; }
+.header-left  { display: table-cell; vertical-align: top; }
+.header-right { display: table-cell; vertical-align: top; text-align: right; }
 .company-name { font-size: 15px; font-weight: bold; color: #4f46e5; }
-.company-sub { font-size: 9px; color: #64748b; margin-top: 3px; line-height: 1.6; }
-.badge { background: #4f46e5; color: #fff; font-size: 11px; font-weight: bold; padding: 4px 12px; border-radius: 16px; display: inline-block; }
-.meta-right { text-align: right; font-size: 9px; color: #64748b; margin-top: 6px; line-height: 1.6; }
+.company-sub  { font-size: 9px; color: #64748b; margin-top: 3px; line-height: 1.6; }
+.badge        { background: #4f46e5; color: #fff; font-size: 11px; font-weight: bold; padding: 4px 12px; border-radius: 16px; display: inline-block; }
+.meta-right   { text-align: right; font-size: 9px; color: #64748b; margin-top: 6px; line-height: 1.6; }
 
-.customer-box { background: #f1f5f9; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
+.customer-box { display: table; width: 100%; background: #f1f5f9; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; }
+.customer-box-left  { display: table-cell; vertical-align: top; }
+.customer-box-right { display: table-cell; vertical-align: top; text-align: right; width: 30%; }
 .customer-name { font-size: 13px; font-weight: bold; color: #1e293b; }
-.customer-sub { font-size: 9px; color: #64748b; margin-top: 2px; }
+.customer-sub  { font-size: 9px; color: #64748b; margin-top: 2px; }
 
-.summary { display: flex; gap: 10px; margin-bottom: 14px; }
-.card { flex: 1; border-radius: 6px; padding: 8px 10px; border: 1px solid #e2e8f0; }
+.summary { display: table; width: 100%; border-spacing: 8px 0; border-collapse: separate; margin-bottom: 14px; }
+.card { display: table-cell; border-radius: 6px; padding: 8px 10px; border: 1px solid #e2e8f0; width: 33%; }
 .card-label { font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 3px; }
 .card-value { font-size: 13px; font-weight: bold; color: #1e293b; }
-.card-blue .card-value { color: #1d4ed8; }
+.card-blue  { background: #eff6ff; border-color: #bfdbfe; }
+.card-green { background: #f0fdf4; border-color: #bbf7d0; }
+.card-amber { background: #fffbeb; border-color: #fde68a; }
+.card-blue  .card-value { color: #1d4ed8; }
 .card-green .card-value { color: #15803d; }
 .card-amber .card-value { color: #b45309; }
 
 .section-title { font-size: 10px; font-weight: bold; color: #374151; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; }
 
-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; border: 1px solid #cbd5e1; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 10px; border: 1px solid #cbd5e1; }
 .sale-header td { background: #4338ca; color: #fff; font-size: 9px; font-weight: bold; padding: 6px 8px; border: 1px solid #3730a3; }
 .col-header th { background: #e36c09; color: #fff; font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3px; padding: 5px 7px; text-align: left; border: 1px solid #c2560a; }
 .col-header th.r { text-align: right; }
@@ -34,38 +42,40 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 14px; border: 1px
 td { padding: 5px 7px; font-size: 9px; border: 1px solid #e2e8f0; color: #334155; }
 td.r { text-align: right; }
 td.c { text-align: center; }
-.odd { background: #ffffff; }
+.odd  { background: #ffffff; }
 .even { background: #f8fafc; }
 .subtotal-row td { background: #eef2ff; font-weight: bold; border: 1px solid #c7d2fe; font-size: 9px; }
 .grand-row td { background: #4f46e5; color: #fff; font-weight: bold; font-size: 10px; border: 1px solid #4338ca; }
 
-.footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-.footer-note { font-size: 8.5px; color: #94a3b8; font-style: italic; }
-.signature { text-align: center; font-size: 9px; color: #64748b; }
+.footer { display: table; width: 100%; margin-top: 16px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+.footer-left  { display: table-cell; vertical-align: bottom; }
+.footer-right { display: table-cell; vertical-align: bottom; text-align: center; width: 130px; }
+.footer-note  { font-size: 8.5px; color: #94a3b8; font-style: italic; }
+.signature    { text-align: center; font-size: 9px; color: #64748b; }
 .signature-line { border-bottom: 1px solid #334155; width: 100px; margin: 34px auto 4px; }
 </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
+    <div class="header-left">
         <div class="company-name">{{ $setting->company_name }}</div>
-        <div class="company-sub">{{ $setting->company_address }}</div>
-        <div class="company-sub">{{ $setting->company_phone }}</div>
+        @if($setting->company_address)<div class="company-sub">{{ $setting->company_address }}</div>@endif
+        @if($setting->company_phone)<div class="company-sub">{{ $setting->company_phone }}</div>@endif
     </div>
-    <div style="text-align:right;">
+    <div class="header-right">
         <div class="badge">REKAP CUSTOMER</div>
         <div class="meta-right">Dicetak: {{ now()->locale('id')->isoFormat('D MMMM Y, HH:mm') }}</div>
     </div>
 </div>
 
 <div class="customer-box">
-    <div>
+    <div class="customer-box-left">
         <div class="customer-name">{{ $customer->name }}</div>
         @if($customer->phone)<div class="customer-sub">Telepon: {{ $customer->phone }}</div>@endif
         @if($customer->address)<div class="customer-sub">Alamat: {{ $customer->address }}</div>@endif
     </div>
-    <div style="text-align:right;">
+    <div class="customer-box-right">
         <div class="customer-sub">Total transaksi: <strong>{{ $sales->count() }}</strong></div>
     </div>
 </div>
@@ -154,11 +164,15 @@ td.c { text-align: center; }
 </table>
 
 <div class="footer">
-    <div class="footer-note">{{ $setting->invoice_footer }}</div>
-    <div class="signature">
-        <div class="signature-line"></div>
-        <div style="font-weight:600;">{{ $setting->petugas ?? 'Petugas' }}</div>
-        <div style="font-size:8px;color:#94a3b8;margin-top:2px;">Tanda Tangan</div>
+    <div class="footer-left">
+        <div class="footer-note">{{ $setting->invoice_footer }}</div>
+    </div>
+    <div class="footer-right">
+        <div class="signature">
+            <div class="signature-line"></div>
+            <div style="font-weight:600;">{{ $setting->petugas ?? 'Petugas' }}</div>
+            <div style="font-size:8px;color:#94a3b8;margin-top:2px;">Tanda Tangan</div>
+        </div>
     </div>
 </div>
 
