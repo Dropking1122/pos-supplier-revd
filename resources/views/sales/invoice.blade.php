@@ -107,9 +107,9 @@ tfoot td { border-top: 2px solid #4f46e5; background: #f1f5f9 !important; font-w
         <div>
             <div class="invoice-badge">LAPORAN PENJUALAN</div>
             <div class="invoice-number">{{ $sale->invoice_number }}</div>
-            <div class="invoice-meta">Tanggal: {{ $sale->created_at->format('d M Y, H:i') }}</div>
+            <div class="invoice-meta">Tanggal: {{ $sale->created_at->locale('id')->isoFormat('D MMM Y, HH:mm') }}</div>
             @if($sale->due_date)
-                <div class="invoice-meta">Jatuh Tempo: {{ $sale->due_date->format('d M Y') }}</div>
+                <div class="invoice-meta">Jatuh Tempo: {{ $sale->due_date->locale('id')->isoFormat('D MMM Y') }}</div>
             @endif
         </div>
     </div>

@@ -55,7 +55,7 @@ td.c { text-align: center; }
     </div>
     <div style="text-align:right;">
         <div class="badge">REKAP CUSTOMER</div>
-        <div class="meta-right">Dicetak: {{ now()->isoFormat('D MMMM Y, HH:mm') }}</div>
+        <div class="meta-right">Dicetak: {{ now()->locale('id')->isoFormat('D MMMM Y, HH:mm') }}</div>
     </div>
 </div>
 

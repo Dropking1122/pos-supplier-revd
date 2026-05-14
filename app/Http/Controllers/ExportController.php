@@ -200,14 +200,12 @@ class ExportController extends Controller
         $customerSlug = $sale->customer ? \Illuminate\Support\Str::slug($sale->customer->name) : 'umum';
         $filename = 'invoice-' . $customerSlug . '-' . $sale->invoice_number . '.xlsx';
         $writer   = new Xlsx($spreadsheet);
-
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Cache-Control'       => 'max-age=0',
-        ]);
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer->save($tempFile);
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ])->deleteFileAfterSend(true);
     }
 
     public function customerExcel(Request $request)
@@ -360,14 +358,12 @@ class ExportController extends Controller
 
         $filename = 'rekap-' . \Illuminate\Support\Str::slug($customer->name) . '-' . now()->format('Ymd') . '.xlsx';
         $writer   = new Xlsx($spreadsheet);
-
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Cache-Control'       => 'max-age=0',
-        ]);
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer->save($tempFile);
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ])->deleteFileAfterSend(true);
     }
 
     public function customerPdf(Request $request)
@@ -565,14 +561,13 @@ class ExportController extends Controller
             $sheet->setCellValue("A" . ($rowIdx + 2), $setting->invoice_footer);
         }
 
-        $writer = new Xlsx($spreadsheet);
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Cache-Control'       => 'max-age=0',
-        ]);
+        $writer   = new Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer->save($tempFile);
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ])->deleteFileAfterSend(true);
     }
 
     public function stockExcel(Request $request)
@@ -601,7 +596,7 @@ class ExportController extends Controller
             return $p;
         });
 
-        $label    = \Carbon\Carbon::parse($date)->isoFormat('D MMMM Y');
+        $label    = \Carbon\Carbon::parse($date)->locale('id')->isoFormat('D MMMM Y');
         $filename = "stock-harian-{$date}.xlsx";
 
         $total_terjual    = $products->sum('terjual');
@@ -716,14 +711,13 @@ class ExportController extends Controller
             $sheet->getColumnDimension($col)->setWidth($w);
         }
 
-        $writer = new Xlsx($spreadsheet);
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Cache-Control'       => 'max-age=0',
-        ]);
+        $writer   = new Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer->save($tempFile);
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ])->deleteFileAfterSend(true);
     }
 
     private function getSales(Request $request)
@@ -755,12 +749,12 @@ class ExportController extends Controller
     private function getPeriodDisplay(Request $request): string
     {
         if ($request->type === 'daily' && $request->date) {
-            return \Carbon\Carbon::parse($request->date)->isoFormat('D MMMM Y');
+            return \Carbon\Carbon::parse($request->date)->locale('id')->isoFormat('D MMMM Y');
         } elseif ($request->type === 'monthly' && $request->month) {
-            return \Carbon\Carbon::createFromFormat('Y-m', $request->month)->isoFormat('MMMM Y');
+            return \Carbon\Carbon::createFromFormat('Y-m', $request->month)->locale('id')->isoFormat('MMMM Y');
         } elseif ($request->type === 'yearly' && $request->year) {
             return 'Tahun ' . $request->year;
         }
-        return now()->isoFormat('D MMMM Y');
+        return now()->locale('id')->isoFormat('D MMMM Y');
     }
 }

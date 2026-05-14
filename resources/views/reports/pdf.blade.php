@@ -88,15 +88,15 @@ td.c { text-align: center; }
             <div class="report-badge">LAPORAN PENJUALAN</div>
             <div class="report-meta">
                 @if($request->type === 'daily' && $request->date)
-                    Periode: {{ \Carbon\Carbon::parse($request->date)->isoFormat('D MMMM Y') }}<br>
+                    Periode: {{ \Carbon\Carbon::parse($request->date)->locale('id')->isoFormat('D MMMM Y') }}<br>
                 @elseif($request->type === 'monthly' && $request->month)
-                    Periode: {{ \Carbon\Carbon::createFromFormat('Y-m', $request->month)->isoFormat('MMMM Y') }}<br>
+                    Periode: {{ \Carbon\Carbon::createFromFormat('Y-m', $request->month)->locale('id')->isoFormat('MMMM Y') }}<br>
                 @elseif($request->type === 'yearly' && $request->year)
                     Periode: Tahun {{ $request->year }}<br>
                 @else
                     Periode: Semua Data<br>
                 @endif
-                Dicetak: {{ now()->isoFormat('D MMMM Y, HH:mm') }}
+                Dicetak: {{ now()->locale('id')->isoFormat('D MMMM Y, HH:mm') }}
             </div>
         </div>
     </div>
