@@ -68,11 +68,12 @@
 
                 <div class="flex gap-2">
                     <a href="{{ route('reports.export', ['type'=>$filterType,'date'=>$filterDate,'month'=>$filterMonth,'year'=>$filterYear]) }}"
+                       target="_blank"
                        class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        Export Excel
+                        Export Semua (Excel)
                     </a>
                     <a href="{{ route('reports.pdf', ['type'=>$filterType,'date'=>$filterDate,'month'=>$filterMonth,'year'=>$filterYear]) }}"
                        target="_blank"
@@ -150,7 +151,7 @@
                             <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
                             <td class="px-4 py-3 text-right font-semibold whitespace-nowrap">Rp {{ number_format($sale->total_amount,0,',','.') }}</td>
                             <td class="px-4 py-3 text-right font-semibold whitespace-nowrap {{ $profit >= 0 ? 'text-green-600' : 'text-red-500' }}">
-                                Rp {{ number_format($profit,0,',','.') }}
+                                {{ $profit >= 0 ? '' : '−' }}Rp {{ number_format(abs($profit),0,',','.') }}
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <span class="px-2 py-0.5 rounded-full text-xs {{ $sale->payment_type === 'cash' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700' }}">
@@ -170,9 +171,14 @@
                                     Invoice
                                 </a>
                                 <a href="{{ route('sales.invoice', $sale->id) }}" target="_blank"
-                                   class="inline-flex items-center gap-1 text-slate-600 hover:text-slate-800 text-xs bg-slate-50 hover:bg-slate-100 px-2 py-1 rounded transition-colors">
+                                   class="inline-flex items-center gap-1 text-slate-600 hover:text-slate-800 text-xs bg-slate-50 hover:bg-slate-100 px-2 py-1 rounded transition-colors mr-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     Laporan
+                                </a>
+                                <a href="{{ route('sales.invoice-excel', $sale->id) }}" target="_blank"
+                                   class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-800 text-xs bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Excel
                                 </a>
                             </td>
                         </tr>
@@ -198,8 +204,8 @@
                             <td class="px-4 py-3 text-right font-bold text-gray-900 whitespace-nowrap">
                                 Rp {{ number_format($totalRevenue,0,',','.') }}
                             </td>
-                            <td class="px-4 py-3 text-right font-bold text-green-700 whitespace-nowrap">
-                                Rp {{ number_format($totalProfit,0,',','.') }}
+                            <td class="px-4 py-3 text-right font-bold {{ $totalProfit >= 0 ? 'text-green-700' : 'text-red-600' }} whitespace-nowrap">
+                                {{ $totalProfit >= 0 ? '' : '−' }}Rp {{ number_format(abs($totalProfit),0,',','.') }}
                             </td>
                             <td colspan="3"></td>
                         </tr>
